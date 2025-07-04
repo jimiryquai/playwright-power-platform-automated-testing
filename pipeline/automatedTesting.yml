@@ -52,7 +52,7 @@ jobs:
   - task: mightoria-playwrightForPowerPlatform@1
     displayName: Portal Tests
     inputs:
-      testLocation: '$(System.DefaultWorkingDirectory)/tests/tests-portal'
+      testLocation: '$(System.DefaultWorkingDirectory)/tests/portal'
       browser: 'chromium'
       trace: 'on'
       outputLocation: '$(Build.ArtifactStagingDirectory)/tests-portal'
