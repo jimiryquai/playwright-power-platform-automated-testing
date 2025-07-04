@@ -5,7 +5,11 @@ pool:
   vmImage: windows-latest
 
 jobs:
+# -------------------------------
+# MDA Tests Job
+# -------------------------------
 - job: MDA_Tests
+  displayName: Run MDA Tests
   steps:
   - checkout: self
     persistCredentials: true
@@ -32,7 +36,14 @@ jobs:
       archiveFile: '$(Build.ArtifactStagingDirectory)/archiveFiles/playwright-mda-tests-report.zip'
       replaceExistingArchive: true
 
+  - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
+    artifact: mda-report
+
+# -------------------------------
+# Portal Tests Job
+# -------------------------------
 - job: Portal_Tests
+  displayName: Run Portal Tests
   steps:
   - checkout: self
     persistCredentials: true
@@ -59,7 +70,14 @@ jobs:
       archiveFile: '$(Build.ArtifactStagingDirectory)/archiveFiles/playwright-portal-tests-report.zip'
       replaceExistingArchive: true
 
+  - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
+    artifact: portal-report
+
+# -------------------------------
+# Public File Tests Job
+# -------------------------------
 - job: PublicFile_Tests
+  displayName: Run Public File Tests
   steps:
   - checkout: self
     persistCredentials: true
@@ -86,27 +104,46 @@ jobs:
       archiveFile: '$(Build.ArtifactStagingDirectory)/archiveFiles/playwright-public-file-tests-report.zip'
       replaceExistingArchive: true
 
+  - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
+    artifact: public-file-report
+
+# -------------------------------
+# Final Job: Publish Artifacts & Results
+# -------------------------------
 - job: Publish_Artifacts
+  displayName: Publish All Artifacts and Results
   dependsOn:
     - MDA_Tests
     - Portal_Tests
     - PublicFile_Tests
   steps:
-  - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
-    artifact: playwright-report
-    condition: always()
+  - download: current
+    artifact: mda-report
+
+  - download: current
+    artifact: portal-report
+
+  - download: current
+    artifact: public-file-report
+
+  - task: PublishPipelineArtifact@1
+    displayName: Publish Combined Report Artifact
+    inputs:
+      targetPath: '$(Pipeline.Workspace)'
+      artifact: playwright-report
 
   - task: PublishTestResults@2
+    displayName: Publish Test Results
     inputs:
       testResultsFormat: 'JUnit'
       testResultsFiles: '**/TEST-*.xml'
-      searchFolder: '$(Build.ArtifactStagingDirectory)'
+      searchFolder: '$(Pipeline.Workspace)'
       mergeTestResults: true
       failTaskOnFailedTests: true
       failTaskOnFailureToPublishResults: true
       failTaskOnMissingResultsFile: true
-
   - task: commitToRepo@2
+    displayName: Commit Results to Repo
     inputs:
       commitMsg: '$(Date:yyyyMMdd)$(Rev:.r)'
       branchName: 'results'
