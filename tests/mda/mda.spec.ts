@@ -22,10 +22,10 @@ const config: Config = {
  
 //const pageTwo = await context.newPage();
  
-test('01-Account Home', async ({ page }) => {
+test('mda', async ({ page }) => {
  
 
-  await page.goto('https://future-trs.powerappsportals.com/'); // Navigate to the Office 365 login page
+  await page.goto(config.appUrl); // Navigate to the Office 365 login page
 
 
     // Enter the username in the login textbox

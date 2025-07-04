@@ -55,6 +55,31 @@ setup('authenticate', async ({ browser }) => {
   await page.getByRole('button', { name: 'Yes' }).click();
 
 
+
+
+  // B2C Auth
+
+  await page.goto(config.appUrl); // Navigate to the Office 365 login page
+
+  // Enter the username in the login textbox
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await page.getByRole('textbox', { name: 'Email address' }).click();
+  await page.getByRole('textbox', { name: 'Email address' }).fill(config.username);
+  await page.getByRole('textbox', { name: 'Password' }).click();
+  await page.getByRole('textbox', { name: 'Password' }).fill(config.password);
+
+  await Promise.all([
+      page.waitForNavigation({ waitUntil: 'networkidle' }),
+      page.getByRole('button', { name: 'Sign in' }).click(),
+  ]);
+    
+  // Optional: verify login success
+  await expect(page).toHaveURL(/dashboard|home|portal/i);
+    
+  // Take screenshot after successful login
+  await page.screenshot({ path: 'portal-login.png' });
+    
+
   // Save the authentication state to a file
   await page.context().storageState({ path: authFile });
 });

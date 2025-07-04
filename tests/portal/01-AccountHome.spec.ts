@@ -25,18 +25,8 @@ const config: Config = {
 test('01-Account Home', async ({ page }) => {
  
 
-  await page.goto('https://future-trs.powerappsportals.com/'); // Navigate to the Office 365 login page
+  await page.goto(config.appUrl); // Navigate to the Office 365 login page
 
-
-    // Enter the username in the login textbox
-    await page.getByRole('button', { name: 'Sign in' }).click();
-    await page.getByRole('textbox', { name: 'Email address' }).click();
-    await page.getByRole('textbox', { name: 'Email address' }).fill(config.username);
-    await page.getByRole('textbox', { name: 'Password' }).click();
-    await page.getByRole('textbox', { name: 'Password' }).fill(config.password);
-    await page.getByRole('button', { name: 'Sign in' }).click();
-    await page.getByRole('button', { name: 'Sign in' }).click();
-  
 
   //Snapshot of the Account home page strcture
   await expect(page.locator('main')).toMatchAriaSnapshot(`
