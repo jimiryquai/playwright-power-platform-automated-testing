@@ -38,6 +38,16 @@ jobs:
 
   - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
     artifact: mda-report
+  - task: PublishTestResults@2
+    displayName: Publish Test Results
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/TEST-*.xml'
+      searchFolder: '$(Build.ArtifactStagingDirectory)'
+      mergeTestResults: true
+      failTaskOnFailedTests: true
+      failTaskOnFailureToPublishResults: true
+      failTaskOnMissingResultsFile: true
 
 # -------------------------------
 # Portal Tests Job
@@ -72,6 +82,16 @@ jobs:
 
   - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
     artifact: portal-report
+  - task: PublishTestResults@2
+    displayName: Publish Test Results
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/TEST-*.xml'
+      searchFolder: '$(Build.ArtifactStagingDirectory)'
+      mergeTestResults: true
+      failTaskOnFailedTests: true
+      failTaskOnFailureToPublishResults: true
+      failTaskOnMissingResultsFile: true
 
 # -------------------------------
 # Public File Tests Job
@@ -107,43 +127,14 @@ jobs:
   - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
     artifact: public-file-report
 
-# -------------------------------
-# Final Job: Publish Artifacts & Results
-# -------------------------------
-- job: Publish_Artifacts
-  displayName: Publish All Artifacts and Results
-  dependsOn:
-    - MDA_Tests
-    - Portal_Tests
-    - PublicFile_Tests
-  steps:
-  - download: current
-    artifact: mda-report
-
-  - download: current
-    artifact: portal-report
-
-  - download: current
-    artifact: public-file-report
-
-  - task: PublishPipelineArtifact@1
-    displayName: Publish Combined Report Artifact
-    inputs:
-      targetPath: '$(Pipeline.Workspace)'
-      artifact: playwright-report
-
   - task: PublishTestResults@2
     displayName: Publish Test Results
     inputs:
       testResultsFormat: 'JUnit'
       testResultsFiles: '**/TEST-*.xml'
-      searchFolder: '$(Pipeline.Workspace)'
+      searchFolder: '$(Build.ArtifactStagingDirectory)'
       mergeTestResults: true
       failTaskOnFailedTests: true
       failTaskOnFailureToPublishResults: true
       failTaskOnMissingResultsFile: true
-  - task: commitToRepo@2
-    displayName: Commit Results to Repo
-    inputs:
-      commitMsg: '$(Date:yyyyMMdd)$(Rev:.r)'
-      branchName: 'results'
+
