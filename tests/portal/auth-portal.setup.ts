@@ -26,7 +26,7 @@ const config: Config = {
 let page; // Declare a variable to hold the browser page instance
 
 // Perform login once before all tests
-setup('authenticate', async ({ browser }) => {
+setup('authenticate-portal', async ({ browser }) => {
   // O365
   page = await browser.newPage(); // Create a new browser page
   await page.goto('https://portal.office.com/'); // Navigate to the Office 365 login page

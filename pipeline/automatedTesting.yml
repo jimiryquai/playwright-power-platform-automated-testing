@@ -14,7 +14,7 @@ steps:
 - task: mightoria-playwrightForPowerPlatform@1
   displayName: MDA Tests
   inputs:
-    testLocation: '$(System.DefaultWorkingDirectory)/tests-mda'
+    testLocation: '$(System.DefaultWorkingDirectory)/tests/mda'
     browser: 'chromium'
     trace: 'on'
     outputLocation: '$(Build.ArtifactStagingDirectory)/tests-mda'
@@ -26,7 +26,7 @@ steps:
 - task: mightoria-playwrightForPowerPlatform@1
   displayName: MDA Tests
   inputs:
-    testLocation: '$(System.DefaultWorkingDirectory)/tests-portal'
+    testLocation: '$(System.DefaultWorkingDirectory)/tests/tests-portal'
     browser: 'chromium'
     trace: 'on'
     outputLocation: '$(Build.ArtifactStagingDirectory)/tests-portal'
@@ -38,7 +38,7 @@ steps:
 - task: mightoria-playwrightForPowerPlatform@1
   displayName: Public File Tests
   inputs:
-    testLocation: '$(System.DefaultWorkingDirectory)/tests-public-file'
+    testLocation: '$(System.DefaultWorkingDirectory)/tests/public-file'
     browser: 'chromium'
     trace: 'on'
     outputLocation: '$(Build.ArtifactStagingDirectory)/tests-public-file'
