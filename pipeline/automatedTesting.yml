@@ -84,6 +84,11 @@ steps:
   inputs:
     testResultsFormat: 'JUnit'
     testResultsFiles: '**/TEST-*.xml'
+    searchFolder: '$(Build.ArtifactStagingDirectory)'
+    mergeTestResults: true
+    failTaskOnFailedTests: true
+    failTaskOnFailureToPublishResults: true
+    failTaskOnMissingResultsFile: true
 
 - task: commitToRepo@2
   inputs:
