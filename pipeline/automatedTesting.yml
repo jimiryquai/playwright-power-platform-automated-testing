@@ -15,53 +15,40 @@ jobs:
     persistCredentials: true
     clean: true
 
-  - script: |
-      echo "=== Current directory ==="
-      pwd
-      echo "=== List all files ==="
-      find . -name "*.ts" -o -name "*.js" | head -20
-      echo "=== Directory structure ==="
-      ls -la
-      echo "=== Check for pages folder ==="
-      ls -la pages/ || echo "pages folder not found"
-      echo "=== Check for utils folder ==="
-      ls -la utils/ || echo "utils folder not found"
-    displayName: 'Debug file structure'
+  - task: mightoria-playwrightForPowerPlatformAdvanced@1
+    inputs:
+      testLocation: '$(System.DefaultWorkingDirectory)/tests'
+      browser: 'chromium'
+      trace: 'on'
+      outputLocation: '$(System.DefaultWorkingDirectory)'
+      appUrl: 'https://futuretrsbuild.crm11.dynamics.com/main.aspx?appid=a38e444a-c33a-ef11-a317-002248c65cbe'
+      appName: 'TRACS'
+      o365Username: '$(O365UserName)'
+      o365Password: '$(O365Password)'
+      dynamicsUrl: 'https://futuretrsbuild.crm11.dynamics.com/'
+      clientId: '9e65885f-e920-41b3-a0ef-9a3212cd8ab0'
+      clientSecret: '$(ClientSecret)'
+      userRole: 'TRA Case Editor'
+      team: 'futuretrstest'
+      businessUnit: 'futuretrstest'
 
-  # - task: mightoria-playwrightForPowerPlatformAdvanced@1
-  #   inputs:
-  #     testLocation: '$(System.DefaultWorkingDirectory)/tests'
-  #     browser: 'chromium'
-  #     trace: 'on'
-  #     outputLocation: '$(System.DefaultWorkingDirectory)'
-  #     appUrl: 'https://futuretrsbuild.crm11.dynamics.com/main.aspx?appid=a38e444a-c33a-ef11-a317-002248c65cbe'
-  #     appName: 'TRACS'
-  #     o365Username: '$(O365UserName)'
-  #     o365Password: '$(O365Password)'
-  #     dynamicsUrl: 'https://futuretrsbuild.crm11.dynamics.com/'
-  #     clientId: '9e65885f-e920-41b3-a0ef-9a3212cd8ab0'
-  #     clientSecret: '$(ClientSecret)'
-  #     userRole: 'TRA Case Editor'
-  #     team: 'futuretrstest'
-  #     businessUnit: 'futuretrstest'
-
-  # - task: ArchiveFiles@2
-  #   inputs:
-  #     rootFolderOrFile: '$(System.DefaultWorkingDirectory)/playwright-report'
-  #     includeRootFolder: true
-  #     archiveType: 'zip'
-  #     archiveFile: '$(Build.ArtifactStagingDirectory)/test-results/playwright-report.zip'
-  #     replaceExistingArchive: true
+  - task: ArchiveFiles@2
+    inputs:
+      rootFolderOrFile: '$(System.DefaultWorkingDirectory)/playwright-report'
+      includeRootFolder: true
+      archiveType: 'zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/test-results/playwright-report.zip'
+      replaceExistingArchive: true
   
-  # - task: PublishBuildArtifacts@1
-  #   inputs:
-  #     PathtoPublish: '$(Build.ArtifactStagingDirectory)/test-results'
-  #     ArtifactName: 'playwright-report'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/test-results'
+      ArtifactName: 'playwright-report'
 
-  # - task: PublishTestResults@2
-  #   inputs:
-  #     testResultsFormat: 'JUnit'
-  #     testResultsFiles: '**/TEST-*.xml'
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/TEST-*.xml'
   
 # -------------------------------
 # Portal Tests Job
