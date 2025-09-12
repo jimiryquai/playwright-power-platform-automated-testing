@@ -68,3 +68,82 @@ await page.goto(config.appUrl);
   await expect(page.getByLabel('The verification code you')).toMatchAriaSnapshot(`- alert "The verification code you have entered does not match our records. Please try again, or request a new code."`);
 });
 
+//3202 - Login - Blank Email and Submission
+test('3202', async ({ page }) => {
+  
+  await page.goto(config.appUrl); //navigate to Tracs app
+
+  await page.getByRole('button', { name: 'Sign in' }).click(); // click on sign in on home page
+
+  await page.getByRole('button', { name: 'Sign in' }).click(); //click on sign in while leaving the email and password cell blank
+
+  //await for error messages to pop up
+  await expect(page.getByLabel('Sign in with your email')).toMatchAriaSnapshot(`
+    - text: Email
+    - alert:
+      - paragraph: Please enter your Email address
+    - textbox "Email address"
+    `);
+  await expect(page.getByLabel('Sign in with your email')).toMatchAriaSnapshot(`
+    - text: Password
+    - alert: Please enter your password
+    - textbox "Password"
+    `);
+});
+
+//3203 - Login - Incorrect login attempt
+test('3203', async ({ page }) => {
+
+await page.goto(config.appUrl); //navigate to Tracs app
+
+  //Log in with incorrect pasword
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await page.getByRole('textbox', { name: 'Email address' }).click();
+  await page.getByRole('textbox', { name: 'Email address' }).fill(config.b2cUsername);
+  await page.getByRole('textbox', { name: 'Password' }).click();
+  await page.getByRole('textbox', { name: 'Password' }).fill('123');
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await expect(page.locator('#error-summary')).toMatchAriaSnapshot(`
+    - alert:
+      - heading "There is a problem"
+      - list:
+        - listitem:
+          - paragraph: Your password is incorrect
+    `);
+
+  //Log in with incorrect email
+  await page.getByRole('textbox', { name: 'Email address' }).click();
+  await page.getByRole('textbox', { name: 'Email address' }).press('ControlOrMeta+a');
+  await page.getByRole('textbox', { name: 'Email address' }).fill('firstname.secondname@traderemedies.gov.uk');
+  await page.getByRole('textbox', { name: 'Password' }).click();
+  await page.getByRole('textbox', { name: 'Password' }).press('ControlOrMeta+a');
+  await page.getByRole('textbox', { name: 'Password' }).fill(config.b2cPassword);
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await expect(page.locator('#error-summary')).toMatchAriaSnapshot(`
+    - alert:
+      - heading "There is a problem"
+      - list:
+        - listitem:
+          - paragraph: We can't seem to find your account
+    `);
+});
+
+//3204 - Login - Invalid login details
+test('3204', async ({ page }) => {
+    
+  await page.goto(config.appUrl); //navigate to Tracs app
+  
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await page.getByRole('textbox', { name: 'Email address' }).click();
+  await page.getByRole('textbox', { name: 'Email address' }).fill('UserName');
+  await page.getByRole('textbox', { name: 'Password' }).click();
+  await page.getByRole('textbox', { name: 'Password' }).fill('Password123$');
+ 
+  //await for error messages to pop up
+  await expect(page.getByLabel('Sign in with your email')).toMatchAriaSnapshot(`
+    - text: Email
+    - alert:
+      - paragraph: Please enter a valid email address.
+    - textbox "Email address"
+    `);
+});
