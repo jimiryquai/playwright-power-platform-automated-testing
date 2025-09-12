@@ -18,7 +18,7 @@ jobs:
 
   - task: mightoria-playwrightForPowerPlatformAdvanced@1
     inputs:
-      testLocation: '$(System.DefaultWorkingDirectory)/PlaywrightTests'
+      testLocation: '$(System.DefaultWorkingDirectory)/tests'
       browser: 'chromium'
       trace: 'off'
       outputLocation: '$(System.DefaultWorkingDirectory)'
@@ -37,7 +37,7 @@ jobs:
   - task: ArchiveFiles@2
     displayName: Archive MDA Tests
     inputs:
-      rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/tests-mda'
+      rootFolderOrFile: '$(System.DefaultWorkingDirectory)/playwright-report'
       includeRootFolder: true
       archiveType: 'zip'
       archiveFile: '$(Build.ArtifactStagingDirectory)/archiveFiles/playwright-mda-tests-report.zip'
