@@ -33,7 +33,6 @@ jobs:
       team: 'futuretrstest'
       businessUnit: 'futuretrstest'
 
-
   - task: ArchiveFiles@2
     inputs:
       rootFolderOrFile: '$(System.DefaultWorkingDirectory)/playwright-report'
@@ -52,7 +51,6 @@ jobs:
       testResultsFormat: 'JUnit'
       testResultsFiles: '**/TEST-*.xml'
   
-
 # -------------------------------
 # Portal Tests Job
 # -------------------------------
