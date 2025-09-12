@@ -26,14 +26,4 @@ export class XrmHelper {
       { timeout: 60000 }
     );
   }
-
-  /**
-   * Wait for a form to be fully ready for interaction
-   */
-  async waitForFormReady(): Promise<void> {
-    await this.page.waitForFunction(
-      () => window.Xrm?.Page?.data !== undefined,
-      { timeout: 15000 }
-    );
-  }
 }
