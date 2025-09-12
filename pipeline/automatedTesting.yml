@@ -20,7 +20,7 @@ jobs:
     inputs:
       testLocation: '$(System.DefaultWorkingDirectory)/tests'
       browser: 'chromium'
-      trace: 'off'
+      trace: 'on'
       outputLocation: '$(System.DefaultWorkingDirectory)'
       appUrl: 'https://futuretrsbuild.crm11.dynamics.com/main.aspx?appid=a38e444a-c33a-ef11-a317-002248c65cbe'
       appName: 'TRACS'
