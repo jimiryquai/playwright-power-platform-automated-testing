@@ -1,8 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
-import { AccountPage } from '../pages/AccountPage';
-import { HomePage } from '../pages/HomePage';
-import { XrmHelper } from '../utils/XrmHelper';
+import { LoginPage } from '../../pages/LoginPage';
+import { XrmHelper } from '../../utils/XrmHelper';
 import 'dotenv/config';
  
 // Define the configuration interface and load values from environment variables
@@ -33,7 +31,7 @@ test.describe('MDA Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 2560, height: 1440 });
     loginPage = new LoginPage(page);
-    homeGridPage = new HomePage(page, 'account');
+    // homeGridPage = new HomePage(page, 'account');
     xrmHelper = new XrmHelper(page);
     
     // Arrange - Login first
