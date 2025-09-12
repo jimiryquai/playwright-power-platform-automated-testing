@@ -15,7 +15,6 @@ jobs:
     persistCredentials: true
     clean: true
 
-
   - task: mightoria-playwrightForPowerPlatformAdvanced@1
     inputs:
       testLocation: '$(System.DefaultWorkingDirectory)/tests'
