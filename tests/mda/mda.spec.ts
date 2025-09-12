@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { LoginPage } from '@pages/LoginPage';
-import { XrmHelper } from '@utils/XrmHelper';
+import { LoginPage } from '../../pages/LoginPage';
+import { XrmHelper } from '../../utils/XrmHelper';
 import 'dotenv/config';
 
  
