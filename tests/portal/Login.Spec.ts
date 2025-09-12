@@ -26,16 +26,45 @@ const config: Config = {
   b2cTenantID: process.env.B2C_TENANT_ID || 'default_tenant_id'
 };
 
-test('test', async ({ page }) => {
+
+
+// 3199- To validate User Login: Email and Password entry via login screen
+test('3199', async ({ page }) => {
 await page.goto(config.appUrl);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.getByRole('textbox', { name: 'Email address' }).click();
   await page.getByRole('textbox', { name: 'Email address' }).fill(config.b2cUsername);
+  await page.waitForTimeout(1000);
   await page.getByRole('textbox', { name: 'Password' }).click();
   await page.getByRole('textbox', { name: 'Password' }).fill(config.b2cPassword);
+  await page.waitForTimeout(1000);
    await Promise.all([
     page.waitForNavigation(),
     page.getByRole('button', { name: 'Sign in' }).click(),
   ]);
+  await page.waitForTimeout(1000);
       await expect(page.locator('h1')).toMatchAriaSnapshot(`- heading "Account Home"`);
 });
+
+
+//3206-Invalid verification code
+test('3206', async ({ page }) => {
+await page.goto(config.appUrl);
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await expect(page.locator('#pageHeading')).toMatchAriaSnapshot(`- heading "Sign in to your Trade Remedies Service account"`);
+  await page.waitForTimeout(1000);
+  await page.getByRole('link', { name: 'Forgot your password?' }).click();
+  await page.getByRole('textbox', { name: 'Email address' }).fill(config.b2cUsername);
+  await page.waitForTimeout(1000);
+  await page.getByRole('button', { name: 'Send verification code' }).click();
+  await page.getByRole('alert', { name: 'Verification code has been' }).click();
+  await page.waitForTimeout(1000);
+  await expect(page.getByLabel('Verification code has been')).toMatchAriaSnapshot(`- alert "Verification code has been sent to your inbox. Please copy it to the input box below."`);
+  await page.getByRole('textbox', { name: 'Verification Code' }).click();
+  await page.getByRole('textbox', { name: 'Verification Code' }).fill('qasdsgfdfgdhfj');
+  await page.waitForTimeout(1000);
+  await page.getByRole('button', { name: 'Verify code' }).click();
+  await page.waitForTimeout(1000);
+  await expect(page.getByLabel('The verification code you')).toMatchAriaSnapshot(`- alert "The verification code you have entered does not match our records. Please try again, or request a new code."`);
+});
+
