@@ -15,17 +15,24 @@ jobs:
     persistCredentials: true
     clean: true
 
-  - task: mightoria-playwrightForPowerPlatform@1
-    displayName: MDA Tests
+
+  - task: mightoria-playwrightForPowerPlatformAdvanced@1
     inputs:
-      testLocation: '$(System.DefaultWorkingDirectory)/tests/mda'
+      testLocation: '$(System.DefaultWorkingDirectory)/PlaywrightTests'
       browser: 'chromium'
-      trace: 'on'
-      outputLocation: '$(Build.ArtifactStagingDirectory)/tests-mda'
+      trace: 'off'
+      outputLocation: '$(System.DefaultWorkingDirectory)'
       appUrl: 'https://futuretrsbuild.crm11.dynamics.com/main.aspx?appid=a38e444a-c33a-ef11-a317-002248c65cbe'
       appName: 'TRACS'
       o365Username: '$(O365UserName)'
       o365Password: '$(O365Password)'
+      dynamicsUrl: 'https://futuretrsbuild.crm11.dynamics.com/'
+      clientId: '9e65885f-e920-41b3-a0ef-9a3212cd8ab0'
+      clientSecret: '$(ClientSecret)'
+      userRole: 'TRA Case Editor'
+      team: 'futuretrstest'
+      businessUnit: 'futuretrstest'
+
 
   - task: ArchiveFiles@2
     displayName: Archive MDA Tests
