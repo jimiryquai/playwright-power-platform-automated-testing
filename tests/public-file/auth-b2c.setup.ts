@@ -59,10 +59,10 @@ setup('authenticate', async ({ browser }) => {
 
   // B2C Auth
 
-  await page.goto(config.appUrl); // Navigate to the Office 365 login page
+  //await page.goto(config.appUrl); // Navigate to the Office 365 login page
 
   // Enter the username in the login textbox
-  await page.getByRole('button', { name: 'Sign in' }).click();
+ /* await page.getByRole('button', { name: 'Sign in' }).click();
   await page.getByRole('textbox', { name: 'Email address' }).click();
   await page.getByRole('textbox', { name: 'Email address' }).fill(config.username);
   await page.getByRole('textbox', { name: 'Password' }).click();
@@ -78,6 +78,7 @@ setup('authenticate', async ({ browser }) => {
     
   // Take screenshot after successful login
   await page.screenshot({ path: 'portal-login.png' });
+  */
     
 
   // Save the authentication state to a file
