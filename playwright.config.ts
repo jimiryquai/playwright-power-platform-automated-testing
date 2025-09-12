@@ -40,47 +40,24 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
-    // Setup project
-    { name: 'setup', testMatch: /.*\.setup\.ts/ },
-
     {
       name: 'chromium',
       use: { 
-          ...devices['Desktop Chrome'],
-          // Use prepared auth state.
-          storageState: 'auth/auth.json',
-        },
-        dependencies: ['setup'],
+        ...devices['Desktop Chrome']
+        // Removed: storageState reference
+        // Removed: dependencies
+      },
     },
 
-   // {
-   //   name: 'firefox',
-   //   use: { ...devices['Desktop Firefox'] },
-   // },
-
-    //{
-    //  name: 'webkit',
-   //   use: { ...devices['Desktop Safari'] },
-   // },
-
-    /* Test against mobile viewports. */
+    // Uncomment these if you want other browsers
     // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
     // },
 
-    /* Test against branded browsers. */
     // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
     // },
   ],
 
