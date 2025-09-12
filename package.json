@@ -10,11 +10,15 @@
   "author": "",
   "license": "ISC",
   "description": "",
-  "devDependencies": {
-    "@playwright/test": "^1.53.0",
-    "@types/node": "^24.0.1"
-  },
   "dependencies": {
-    "dotenv": "^16.5.0"
+    "@playwright/test": "^1.55.0",
+    "typescript": "^5.9.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "@types/xrm": "^9.0.87",
+    "dotenv": "^17.2.2",
+    "eslint": "^9.35.0",
+    "eslint-plugin-playwright": "^2.2.2"
   }
 }
