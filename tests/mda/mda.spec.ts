@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { XrmHelper } from '../../utils/XrmHelper';  // Comment out
+import { XrmHelper } from '../utils/XrmHelper';  // Comment out
 import 'dotenv/config';
 
 interface Config {

@@ -12,10 +12,10 @@
         "./*"
       ],
       "@pages/*": [
-        "./pages/*"
+        "tests/pages/*"
       ],
       "@utils/*": [
-        "./utils/*"
+        "tests/utils/*"
       ]
     },
     "types": [
@@ -31,8 +31,8 @@
   },
   "include": [
     "tests/**/*",
-    "pages/**/*",
-    "utils/**/*",
+    "tests/pages/**/*",
+    "tests/utils/**/*",
     "global-setup.ts"
   ]
 }
