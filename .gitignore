@@ -11,3 +11,11 @@ node_modules/
 .auth/
 user.json
 auth/
+
+# Authentication state files (contain sensitive session data)
+auth-state.json
+auth/auth.json
+
+# Any other auth state files
+*.auth.json
+*auth-state*
