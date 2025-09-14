@@ -45,10 +45,23 @@ jobs:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)/test-results'
       ArtifactName: 'playwright-report'
 
+  - script: |
+      echo "=== ADO Workspace Debug ==="
+      pwd
+      echo "=== All TypeScript files ==="
+      find . -name "*.ts" | sort
+      echo "=== Pages directory ==="
+      ls -la pages/ || echo "pages directory not found"
+      echo "=== Utils directory ==="
+      ls -la utils/ || echo "utils directory not found"
+      echo "=== Tests directory structure ==="
+      find tests/ -name "*.ts" | sort || echo "tests directory not found"
+    displayName: 'Debug file structure in ADO'
+
   - task: PublishTestResults@2
     inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/TEST-*.xml'
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/TEST-*.xml'
   
 # -------------------------------
 # Portal Tests Job
