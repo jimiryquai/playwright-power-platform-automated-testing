@@ -2,7 +2,6 @@ import { Page, Locator } from '@playwright/test';
 
 export class LoginPage {
   readonly page: Page;
-  readonly newAccountButton: Locator;
   readonly emailInput: Locator;
   readonly passwordInput: Locator;
   readonly nextButton: Locator;
@@ -11,7 +10,6 @@ export class LoginPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.newAccountButton = page.locator('[data-id="account|NoRelationship|HomePageGrid|Mscrm.HomepageGrid.account.NewRecord"]');
     this.emailInput = page.locator('input[type="email"]');
     this.passwordInput = page.locator('input[type="password"]');
     this.nextButton = page.locator('input[type="submit"][value="Next"]');
