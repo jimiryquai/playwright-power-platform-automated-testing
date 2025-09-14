@@ -15,6 +15,11 @@ jobs:
     persistCredentials: true
     clean: true
 
+- script: |
+    echo "=== TypeScript Compilation Test ==="
+    npx tsc --noEmit --skipLibCheck
+  displayName: 'Check TypeScript compilation'
+
   - task: mightoria-playwrightForPowerPlatformAdvanced@1
     inputs:
       testLocation: '$(System.DefaultWorkingDirectory)/tests'
