@@ -1,16 +1,30 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2021",
     "module": "commonjs",
-    "lib": ["ES2020", "DOM"],
+    "lib": [
+      "ES2021",
+      "DOM"
+    ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@pages/*": ["./pages/*"],
-      "@utils/*": ["./utils/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@pages/*": [
+        "./pages/*"
+      ],
+      "@utils/*": [
+        "./utils/*"
+      ]
     },
-    "types": ["@playwright/test"],
+    "types": [
+      "@playwright/test",
+      "node",
+      "@types/xrm"
+    ],
     "esModuleInterop": true,
+    "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "skipLibCheck": true
