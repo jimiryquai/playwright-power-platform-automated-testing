@@ -16,7 +16,7 @@ interface Config {
 
 // Load configuration values, falling back to defaults if environment variables are not set
 const config: Config = {
-  appUrl: process.env.APP_URL || 'default_url',
+  appUrl: process.env.PORTAL_URL || 'default_url',
   appName: process.env.APP_NAME || 'default_name',
   /*username: process.env.O365_USERNAME || 'default_username',
   password: process.env.O365_PASSWORD || 'default_password',
@@ -25,8 +25,6 @@ const config: Config = {
   b2cPassword: process.env.B2C_PASSWORD || 'default_password',
   b2cTenantID: process.env.B2C_TENANT_ID || 'default_tenant_id'
 };
-
-
 
 // 3199- To validate User Login: Email and Password entry via login screen
 test('3199', async ({ page }) => {
@@ -45,7 +43,6 @@ await page.goto(config.appUrl);
   await page.waitForTimeout(1000);
       await expect(page.locator('h1')).toMatchAriaSnapshot(`- heading "Account Home"`);
 });
-
 
 //3206-Invalid verification code
 test('3206', async ({ page }) => {

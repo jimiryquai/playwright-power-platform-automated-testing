@@ -25,7 +25,7 @@ export default defineConfig({
       testDir: './tests/mda',
       use: { 
         ...devices['Desktop Chrome'],
-        storageState: 'auth-state.json', // Uses D365 auth
+        storageState: 'auth/user.json', // Uses D365 auth
       },
       dependencies: ['mda-setup'],
     },

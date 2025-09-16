@@ -11,7 +11,7 @@ interface Config {
 
 // Load configuration values, falling back to defaults if environment variables are not set
 const config: Config = {
-    appUrl: process.env.APP_URL || 'default_url',
+    appUrl: process.env.PORTAL_URL || 'default_url',
     b2cUsername: process.env.B2C_USERNAME || 'default_username',
     b2cPassword: process.env.B2C_PASSWORD || 'default_password',
 };

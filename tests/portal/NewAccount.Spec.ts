@@ -16,7 +16,7 @@ interface Config {
 
 // Load configuration values, falling back to defaults if environment variables are not set
 const config: Config = {
-  appUrl: process.env.APP_URL || 'default_url',
+  appUrl: process.env.PORTAL_URL || 'default_url',
   appName: process.env.APP_NAME || 'default_name',
   /*username: process.env.O365_USERNAME || 'default_username',
   password: process.env.O365_PASSWORD || 'default_password',
@@ -42,8 +42,6 @@ await page.waitForTimeout(1000);
 await page.getByRole('textbox', { name: 'Email address' }).fill('asadsgrthd');
 await page.getByRole('button', { name: 'Send verification code' }).click();
 });
-
-
 
 // 3279-New Account Creation - 2FA Verification with Invalid Code
 test('3279', async ({ page }) => {

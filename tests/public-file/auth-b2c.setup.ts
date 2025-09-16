@@ -1,87 +1,32 @@
 import { test as setup, expect } from '@playwright/test';
-import path from 'path';
+import { LoginPage } from '../pages/LoginPage';
+import { PortalLoginPage } from '../pages/PortalLoginPage';
+import { testConfig } from '../config/TestConfig';
 
-import 'dotenv/config';
-
-const authFile = path.join(__dirname, '../auth/auth.json');
-
-// Define the configuration interface and load values from environment variables
-interface Config {
-  appUrl: string; // URL of the application to test
-  appName: string; // Name of the application to verify
-  username: string; // Username for login
-  password: string; // Password for login
-  tenantId: string; // Tenant ID for the Office 365 account
-}
-
-// Load configuration values, falling back to defaults if environment variables are not set
-const config: Config = {
-  appUrl: process.env.APP_URL || 'default_url',
-  appName: process.env.APP_NAME || 'default_name',
-  username: process.env.O365_USERNAME || 'default_username',
-  password: process.env.O365_PASSWORD || 'default_password',
-  tenantId: process.env.O365_TENANT_ID || 'default_tenant_id',
-};
-
-let page; // Declare a variable to hold the browser page instance
+const authFile = 'auth/auth.json';
 
 // Perform login once before all tests
-setup('authenticate', async ({ browser }) => {
-  // O365
-  page = await browser.newPage(); // Create a new browser page
-  await page.goto('https://portal.office.com/'); // Navigate to the Office 365 login page
+setup('authenticate', async ({ page }) => {
+  // ARRANGE - Set up test prerequisites
+  await page.setViewportSize({ width: 2560, height: 1440 });
+  const loginPage = new LoginPage(page);
+  const portalLoginPage = new PortalLoginPage(page);
 
-  // Enter the username in the login textbox
-  await page.getByRole('textbox', { name: 'Enter your email, phone, or' }).click();
-  await page.getByRole('textbox', { name: 'Enter your email, phone, or' }).fill(config.username);
+  // ACT - Perform the authentication flow
+  await page.goto(testConfig.portalUrl);
+  await loginPage.login(testConfig.username, testConfig.password);
+  await page.waitForLoadState('networkidle');
+  await portalLoginPage.login(testConfig.username, testConfig.password);
+  await page.waitForLoadState('networkidle');
 
-  // Click the "Next" button and wait for navigation
-  await Promise.all([
-    page.waitForNavigation(),
-    page.getByRole('button', { name: 'Next' }).click(),
-  ]);
+  // ASSERT - Verify successful authentication
+  await expect(page).toHaveURL(/powerappsportals|trade.*remedies/i);
 
-  // Enter the password in the password textbox
-  await page.getByRole('textbox', { name: 'Enter the password for' }).click();
-  await page.getByRole('textbox', { name: 'Enter the password for' }).fill(config.password);
-
-  // Click the "Sign in" button and wait for navigation
-  await Promise.all([
-    page.waitForNavigation(),
-    page.getByRole('button', { name: 'Sign in' }).click(),
-  ]);
-
-  // Confirm the "Stay signed in" prompt by clicking "Yes"
-  await page.getByRole('button', { name: 'Yes' }).click();
-
-
-
-
-  // B2C Auth
-
-  //await page.goto(config.appUrl); // Navigate to the Office 365 login page
-
-  // Enter the username in the login textbox
- /* await page.getByRole('button', { name: 'Sign in' }).click();
-  await page.getByRole('textbox', { name: 'Email address' }).click();
-  await page.getByRole('textbox', { name: 'Email address' }).fill(config.username);
-  await page.getByRole('textbox', { name: 'Password' }).click();
-  await page.getByRole('textbox', { name: 'Password' }).fill(config.password);
-
-  await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle' }),
-      page.getByRole('button', { name: 'Sign in' }).click(),
-  ]);
-    
-  // Optional: verify login success
-  await expect(page).toHaveURL(/dashboard|home|portal/i);
-    
-  // Take screenshot after successful login
-  await page.screenshot({ path: 'portal-login.png' });
-  */
-    
-
-  // Save the authentication state to a file
+  // Save authentication state for reuse
   await page.context().storageState({ path: authFile });
+  console.log('Power Pages auth saved successfully');
+
+  // Optional: Take screenshot for debugging
+  await page.screenshot({ path: 'portal-login.png' });
 });
 
