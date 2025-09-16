@@ -20,7 +20,7 @@ test.describe('About Goods Page Test Cases', () => {
     await organizationPage.completeOrganizationSetup();
 
     // Navigate to About Goods page
-    await page.goto(`${testConfig.portalUrl}/New-Application-About-the-goods/?AppID=41b463cd-1971-f011-95f2-6045bdd0ec76`);
+    // await page.goto(`${testConfig.portalUrl}/New-Application-About-the-goods/?AppID=41b463cd-1971-f011-95f2-6045bdd0ec76`);
   });
   //Clean data after each test run
   test.afterEach('Delete field inputs', async ({ page }) => {
@@ -116,26 +116,26 @@ test.describe('About Goods Page Test Cases', () => {
     await expect(page.locator('#mainTitle')).toContainText('Create an application');
   });
 
-  // TODO: Implement when unblocked
-  test.skip('3326 - About Goods Yes journey validation', async ({ page }) => {
-    // BLOCKED - implement when requirements available
-  });
+  // // TODO: Implement when unblocked
+  // test.skip('3326 - About Goods Yes journey validation', async ({ page }) => {
+  //   // BLOCKED - implement when requirements available
+  // });
 
-  test.skip('3327 - Validate saving applications in draft status', async ({ page }) => {
-    // BLOCKED - implement when requirements available  
-  });
+  // test.skip('3327 - Validate saving applications in draft status', async ({ page }) => {
+  //   // BLOCKED - implement when requirements available  
+  // });
 
-  test.skip('3330 - Validate upload for invalid files', async ({ page }) => {
-    // BLOCKED - implement when requirements available
-  });
+  // test.skip('3330 - Validate upload for invalid files', async ({ page }) => {
+  //   // BLOCKED - implement when requirements available
+  // });
 
-  test.skip('3331 - Validate metadata tagging for documents', async ({ page }) => {
-    // BLOCKED - implement when requirements available
-  });
+  // test.skip('3331 - Validate metadata tagging for documents', async ({ page }) => {
+  //   // BLOCKED - implement when requirements available
+  // });
 
-  test.skip('3334 - Validate resubmit application', async ({ page }) => {
-    // BLOCKED - implement when requirements available
-  });
+  // test.skip('3334 - Validate resubmit application', async ({ page }) => {
+  //   // BLOCKED - implement when requirements available
+  // });
 
   // Note: Test 3364 belongs in MDA app tests, not portal tests
 });
