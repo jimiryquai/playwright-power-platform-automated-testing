@@ -18,9 +18,10 @@ export interface Config {
   portalUrl: string;
   b2cUsername: string;
   b2cPassword: string;
-  testOrg: OrganizationData; // ← New property
+  azureAppUrl: string;      // ← New property
+  azurePassword: string;    // ← New property
+  testOrg: OrganizationData;
 }
-
 
 export const testConfig: Config = {
   // D365/MDA Configuration
@@ -36,6 +37,10 @@ export const testConfig: Config = {
   tenantId: process.env.O365_TENANT_ID || '',
   b2cUsername: process.env.B2C_USERNAME || '',
   b2cPassword: process.env.B2C_PASSWORD || '',
+
+  // Azure Configuration
+  azureAppUrl: process.env.AZURE_APP_URL || 'https://publicfile-test.tangoromeoalpha.co.uk/',
+  azurePassword: process.env.AZURE_PASSWORD || 'Testsite1!',
 
   // Add organization test data
   testOrg: {

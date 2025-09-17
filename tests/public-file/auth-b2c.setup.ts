@@ -20,14 +20,12 @@ setup('authenticate', async ({ page }) => {
   await portalLoginPage.login(testConfig.username, testConfig.password);
   await page.waitForLoadState('networkidle');
 
-  // NEW: Wait for authentication to fully complete
   await page.waitForTimeout(3000); // Give B2C time to settle
 
   // ASSERT - Verify we reached the authenticated page (not stuck in auth loop)
   await expect(page.locator('button:has-text("Sign in")')).not.toBeVisible({ timeout: 10000 });
 
-
-  // NEW: Navigate once more to ensure auth is stable
+  // Navigate once more to ensure auth is stable
   await page.goto(testConfig.portalUrl);
   await page.waitForLoadState('networkidle');
 

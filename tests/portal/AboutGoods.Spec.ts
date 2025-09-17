@@ -18,9 +18,6 @@ test.describe('About Goods Page Test Cases', () => {
 
     // Complete organization setup using POM
     await organizationPage.completeOrganizationSetup();
-
-    // Navigate to About Goods page
-    // await page.goto(`${testConfig.portalUrl}/New-Application-About-the-goods/?AppID=41b463cd-1971-f011-95f2-6045bdd0ec76`);
   });
   //Clean data after each test run
   test.afterEach('Delete field inputs', async ({ page }) => {
