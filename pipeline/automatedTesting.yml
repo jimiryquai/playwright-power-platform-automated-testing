@@ -39,57 +39,57 @@ jobs:
       archiveType: 'zip'
       archiveFile: '$(Build.ArtifactStagingDirectory)/test-results/playwright-report.zip'
       replaceExistingArchive: true
-  
+
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)/test-results'
       ArtifactName: 'playwright-report'
 
-  # - task: PublishTestResults@2
-  #   inputs:
-  #       testResultsFormat: 'JUnit'
-  #       testResultsFiles: '**/TEST-*.xml'
+  - task: PublishTestResults@2
+    inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/TEST-*.xml'
   
 # -------------------------------
 # Portal Tests Job
 # -------------------------------
-- job: Portal_Tests
-  displayName: Run Portal Tests
-  steps:
-  - checkout: self
-    persistCredentials: true
-    clean: true
+# - job: Portal_Tests
+#   displayName: Run Portal Tests
+#   steps:
+#   - checkout: self
+#     persistCredentials: true
+#     clean: true
 
-  - task: mightoria-playwrightForPowerPlatform@1
-    displayName: Portal Tests
-    inputs:
-      testLocation: '$(System.DefaultWorkingDirectory)/tests/portal'
-      browser: 'chromium'
-      trace: 'on'
-      outputLocation: '$(Build.ArtifactStagingDirectory)/tests-portal'
-      appUrl: 'https://future-trs.powerappsportals.com/'
-      appName: 'TRACS'
-      o365Username: '$(O365UserName)'
-      o365Password: '$(O365Password)'
+#   - task: mightoria-playwrightForPowerPlatform@1
+#     displayName: Portal Tests
+#     inputs:
+#       testLocation: '$(System.DefaultWorkingDirectory)/tests/portal'
+#       browser: 'chromium'
+#       trace: 'on'
+#       outputLocation: '$(Build.ArtifactStagingDirectory)/tests-portal'
+#       appUrl: 'https://future-trs.powerappsportals.com/'
+#       appName: 'TRACS'
+#       o365Username: '$(O365UserName)'
+#       o365Password: '$(O365Password)'
 
-  - task: ArchiveFiles@2
-    displayName: Archive Portal Tests
-    inputs:
-      rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/tests-portal'
-      includeRootFolder: true
-      archiveType: 'zip'
-      archiveFile: '$(Build.ArtifactStagingDirectory)/archiveFiles/playwright-portal-tests-report.zip'
-      replaceExistingArchive: true
+#   - task: ArchiveFiles@2
+#     displayName: Archive Portal Tests
+#     inputs:
+#       rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/tests-portal'
+#       includeRootFolder: true
+#       archiveType: 'zip'
+#       archiveFile: '$(Build.ArtifactStagingDirectory)/archiveFiles/playwright-portal-tests-report.zip'
+#       replaceExistingArchive: true
 
-  - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
-    artifact: portal-report
-  - task: PublishTestResults@2
-    displayName: Publish Test Results
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/TEST-*.xml'
-      searchFolder: '$(Build.ArtifactStagingDirectory)'
-      mergeTestResults: true
+#   - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
+#     artifact: portal-report
+#   - task: PublishTestResults@2
+#     displayName: Publish Test Results
+#     inputs:
+#       testResultsFormat: 'JUnit'
+#       testResultsFiles: '**/TEST-*.xml'
+#       searchFolder: '$(Build.ArtifactStagingDirectory)'
+#       mergeTestResults: true
       # failTaskOnFailedTests: true
       # failTaskOnFailureToPublishResults: true
       # failTaskOnMissingResultsFile: true
@@ -97,44 +97,44 @@ jobs:
 # -------------------------------
 # Public File Tests Job
 # -------------------------------
-- job: PublicFile_Tests
-  displayName: Run Public File Tests
-  steps:
-  - checkout: self
-    persistCredentials: true
-    clean: true
+# - job: PublicFile_Tests
+#   displayName: Run Public File Tests
+#   steps:
+#   - checkout: self
+#     persistCredentials: true
+#     clean: true
 
-  - task: mightoria-playwrightForPowerPlatform@1
-    displayName: Public File Tests
-    inputs:
-      testLocation: '$(System.DefaultWorkingDirectory)/tests/public-file'
-      browser: 'chromium'
-      trace: 'on'
-      outputLocation: '$(Build.ArtifactStagingDirectory)/tests-public-file'
-      appUrl: 'https://future-trs.powerappsportals.com/'
-      appName: 'TRACS'
-      o365Username: '$(O365UserName)'
-      o365Password: '$(O365Password)'
+#   - task: mightoria-playwrightForPowerPlatform@1
+#     displayName: Public File Tests
+#     inputs:
+#       testLocation: '$(System.DefaultWorkingDirectory)/tests/public-file'
+#       browser: 'chromium'
+#       trace: 'on'
+#       outputLocation: '$(Build.ArtifactStagingDirectory)/tests-public-file'
+#       appUrl: 'https://future-trs.powerappsportals.com/'
+#       appName: 'TRACS'
+#       o365Username: '$(O365UserName)'
+#       o365Password: '$(O365Password)'
 
-  - task: ArchiveFiles@2
-    displayName: Archive Public File Tests
-    inputs:
-      rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/tests-public-file'
-      includeRootFolder: true
-      archiveType: 'zip'
-      archiveFile: '$(Build.ArtifactStagingDirectory)/archiveFiles/playwright-public-file-tests-report.zip'
-      replaceExistingArchive: true
+#   - task: ArchiveFiles@2
+#     displayName: Archive Public File Tests
+#     inputs:
+#       rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/tests-public-file'
+#       includeRootFolder: true
+#       archiveType: 'zip'
+#       archiveFile: '$(Build.ArtifactStagingDirectory)/archiveFiles/playwright-public-file-tests-report.zip'
+#       replaceExistingArchive: true
 
-  - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
-    artifact: public-file-report
+#   - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
+#     artifact: public-file-report
 
-  - task: PublishTestResults@2
-    displayName: Publish Test Results
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/TEST-*.xml'
-      searchFolder: '$(Build.ArtifactStagingDirectory)'
-      mergeTestResults: true
+#   - task: PublishTestResults@2
+#     displayName: Publish Test Results
+#     inputs:
+#       testResultsFormat: 'JUnit'
+#       testResultsFiles: '**/TEST-*.xml'
+#       searchFolder: '$(Build.ArtifactStagingDirectory)'
+#       mergeTestResults: true
   #     failTaskOnFailedTests: true
   #     failTaskOnFailureToPublishResults: true
   #     failTaskOnMissingResultsFile: true
