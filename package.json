@@ -4,7 +4,10 @@
   "main": "index.js",
   "scripts": {
     "setup": "npx playwright install",
-    "test": "npx playwright test"
+    "test": "npx playwright test",
+    "setup:public-file": "npx playwright test --project=public-file-setup",
+    "codegen:public-file": "tsx scripts/codegen-public-file.ts",
+    "codegen:public-file:full": "npm run setup:public-file && npm run codegen:public-file"
   },
   "keywords": [],
   "author": "",
@@ -19,7 +22,9 @@
     "@types/node": "^24.3.1",
     "@types/xrm": "^9.0.87",
     "dotenv": "^17.2.2",
+    "dotenv-cli": "^10.0.0",
     "eslint": "^9.35.0",
-    "eslint-plugin-playwright": "^2.2.2"
+    "eslint-plugin-playwright": "^2.2.2",
+    "tsx": "^4.20.5"
   }
 }
