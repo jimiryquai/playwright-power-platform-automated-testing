@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { XrmHelper } from '../utils/XrmHelper';
+import { XrmHelper } from './utils/XrmHelper';
 import { testConfig, validateConfig } from '../config/TestConfig';
 import path from 'path';
 

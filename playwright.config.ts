@@ -44,16 +44,20 @@ export default defineConfig({
         storageState: 'auth/auth.json',
       },
       dependencies: ['portal-setup'],
-      testIgnore: '**/forgot-password.spec.ts', // Exclude unauthenticated tests
     },
-    // 🆕 ADD THIS: Unauthenticated Tests (no auth state)
+    // Public File Setup and Tests
+    { 
+      name: 'public-file-setup', 
+      testMatch: /auth-public-file\.setup\.ts/, // Only matches the public-file setup
+    },
     {
-      name: 'unauthenticated',
-      testMatch: '**/forgot-password.spec.ts', // Only forgot password tests
-      use: {
+      name: 'public-file-tests',
+      testDir: './tests/public-file',
+      use: { 
         ...devices['Desktop Chrome'],
-        // No storageState - fresh browser context every time
+        storageState: 'auth/public-file.json', // Uses Azure auth
       },
+      dependencies: ['public-file-setup'],
     },
   ],
 });

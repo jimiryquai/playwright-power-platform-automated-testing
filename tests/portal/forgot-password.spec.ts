@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
-import { PortalLoginPage } from '../pages/PortalLoginPage';
+import { LoginPage } from './pages/LoginPage';
+import { PortalLoginPage } from './pages/PortalLoginPage';
 import { testConfig, validateConfig } from '../config/TestConfig';
 
 test.describe('Forgot Password Tests', () => {

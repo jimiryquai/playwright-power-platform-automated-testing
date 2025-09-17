@@ -12,10 +12,10 @@
         "./*"
       ],
       "@pages/*": [
-        "tests/pages/*"
+        "tests/portal/pages/*"
       ],
       "@utils/*": [
-        "tests/utils/*"
+        "tests/mda/utils/*"
       ]
     },
     "types": [
@@ -31,7 +31,7 @@
   },
   "include": [
     "tests/**/*",
-    "tests/pages/**/*",
-    "tests/utils/**/*"
+    "tests/portal/pages/**/*",
+    "tests/mda/utils/**/*"
   ]
 }

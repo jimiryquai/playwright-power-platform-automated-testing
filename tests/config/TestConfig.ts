@@ -25,11 +25,11 @@ export interface Config {
 
 export const testConfig: Config = {
   // D365/MDA Configuration
-  appUrl: process.env.APP_URL || 'https://futuretrsbuild.crm11.dynamics.com/main.aspx?appid=a38e444a-c33a-ef11-a317-002248c65cbe',
-  appName: process.env.APP_NAME || 'Microsoft',
+  appUrl: process.env.APP_URL || '',
+  appName: process.env.APP_NAME || '',
 
   // Portal Configuration  
-  portalUrl: process.env.PORTAL_URL || 'https://ftrs-modeloffice.powerappsportals.com/',
+  portalUrl: process.env.PORTAL_URL || '',
 
   // Authentication
   username: process.env.O365_USERNAME || '',
@@ -39,8 +39,8 @@ export const testConfig: Config = {
   b2cPassword: process.env.B2C_PASSWORD || '',
 
   // Azure Configuration
-  azureAppUrl: process.env.AZURE_APP_URL || 'https://publicfile-test.tangoromeoalpha.co.uk/',
-  azurePassword: process.env.AZURE_PASSWORD || 'Testsite1!',
+  azureAppUrl: process.env.AZURE_APP_URL || '',
+  azurePassword: process.env.AZURE_PASSWORD || '',
 
   // Add organization test data
   testOrg: {

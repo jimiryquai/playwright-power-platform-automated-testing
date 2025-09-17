@@ -2,10 +2,6 @@ import { Page } from '@playwright/test';
 import{ XrmHelper } from '../utils/XrmHelper';
 
 export class Grid {
-  // Constants for grid row calculations
-  private static readonly GRID_HEADER_ROWS = 1;
-  private static readonly CSS_SELECTOR_OFFSET = 1; // CSS nth-child is 1-based
-
   readonly gridContext: string; // For better error messages
   readonly page: Page;
   private xrmHelper: XrmHelper;
@@ -17,25 +13,18 @@ export class Grid {
   }
 
   /**
-   * Converts zero-based record index to grid row index
-   */
-  private getGridRowIndex(recordNumber: number): number {
-    return recordNumber + Grid.GRID_HEADER_ROWS + Grid.CSS_SELECTOR_OFFSET;
-  }
-
-  /**
    * Opens the record in the grid at the n-th index by double-clicking
    */
   async openNthRecord(recordNumber: number): Promise<void> {
     await this.xrmHelper.waitForXrmReady();
     
-    const rowIndex = this.getGridRowIndex(recordNumber);
-    
     const selectors = [
-      `[data-lp-id="MscrmControls.Grid.GridControl"] tr:nth-child(${rowIndex})`,
-      `[role="grid"] tr:nth-child(${rowIndex})`,
-      `.grid-container tr:nth-child(${rowIndex})`,
-      `table[role="grid"] tbody tr:nth-child(${recordNumber + Grid.CSS_SELECTOR_OFFSET})`
+      // AG-Grid selectors (for D365)
+      `div[role="row"][row-index="${recordNumber}"]`,
+      `div.ag-row[row-index="${recordNumber}"]`,
+      // Fallback selectors
+      `div[role="row"]:nth-child(${recordNumber + 1})`,
+      `[role="grid"] tr:nth-child(${recordNumber + 2})`, // Legacy table support
     ];
 
     let rowElement = null;
@@ -58,25 +47,25 @@ export class Grid {
   async selectNthRecord(recordNumber: number): Promise<void> {
     await this.xrmHelper.waitForXrmReady();
     
-    const rowIndex = this.getGridRowIndex(recordNumber);
-    
-    const selectors = [
-      `[data-lp-id="MscrmControls.Grid.GridControl"] tr:nth-child(${rowIndex}) td:first-child`,
-      `[role="grid"] tr:nth-child(${rowIndex}) [type="checkbox"]`,
-      `.grid-container tr:nth-child(${rowIndex}) input[type="checkbox"]`,
-      `table[role="grid"] tbody tr:nth-child(${recordNumber + Grid.CSS_SELECTOR_OFFSET}) td:first-child`
+    // For AG-Grid, try to click the checkbox first
+    const checkboxSelectors = [
+      `div[role="row"][row-index="${recordNumber}"] input[type="checkbox"]`,
+      `div.ag-row[row-index="${recordNumber}"] input[type="checkbox"]`,
+      `div[role="row"][row-index="${recordNumber}"] .ms-Checkbox-checkbox`,
     ];
 
     let element = null;
-    for (const selector of selectors) {
+    for (const selector of checkboxSelectors) {
       element = await this.page.$(selector);
       if (element) break;
     }
 
+    // If no checkbox found, click the row itself
     if (!element) {
       const rowSelectors = [
-        `[role="grid"] tr:nth-child(${rowIndex})`,
-        `table[role="grid"] tbody tr:nth-child(${recordNumber + Grid.CSS_SELECTOR_OFFSET})`
+        `div[role="row"][row-index="${recordNumber}"]`,
+        `div.ag-row[row-index="${recordNumber}"]`,
+        `div[role="row"]:nth-child(${recordNumber + 1})`,
       ];
       
       for (const selector of rowSelectors) {
@@ -94,13 +83,16 @@ export class Grid {
   }
 
   /**
-   * Gets the total number of data rows in the grid (excluding header)
+   * Gets the total number of data rows in the grid
    */
   async getGridRowCount(): Promise<number> {
     await this.xrmHelper.waitForXrmReady();
     
     const selectors = [
-      '[data-lp-id="MscrmControls.Grid.GridControl"] tbody tr',
+      // AG-Grid selectors
+      'div[role="row"].ag-row',
+      'div[role="row"][row-index]',
+      // Fallback selectors
       '[role="grid"] tbody tr',
       '.grid-container tbody tr'
     ];
@@ -160,20 +152,93 @@ export class Grid {
   async waitForGridReady(): Promise<void> {
     await this.xrmHelper.waitForXrmReady();
     
+    // Wait for AG-Grid to be present
+    const gridSelectors = [
+      'div[role="grid"].ag-root',
+      'div.ag-root',
+      '[role="grid"]'
+    ];
+
+    let gridFound = false;
+    for (const selector of gridSelectors) {
+      try {
+        await this.page.waitForSelector(selector, { state: 'visible', timeout: 10000 });
+        gridFound = true;
+        break;
+      } catch {
+        // Try next selector
+      }
+    }
+
+    if (!gridFound) {
+      throw new Error(`Grid not found in ${this.gridContext}`);
+    }
+
+    // Wait for any loading indicators to disappear
     const loadingSelectors = [
       '[data-id="loadingSpinner"]',
       '.ms-Spinner',
-      '[aria-label*="Loading"]'
+      '[aria-label*="Loading"]',
+      '.ag-overlay-loading-wrapper'
     ];
 
     for (const selector of loadingSelectors) {
       try {
         await this.page.waitForSelector(selector, { state: 'detached', timeout: 5000 });
-      } catch (error) {
-        console.warn(`Grid loading selector not found or timeout: ${selector}`, error);
+      } catch {
+        // Loading indicator might not exist, continue
       }
     }
 
     await this.page.waitForTimeout(1000);
+  }
+
+  /**
+   * Gets the text content of a specific cell
+   */
+  async getCellText(recordNumber: number, columnId: string): Promise<string> {
+    await this.xrmHelper.waitForXrmReady();
+    
+    const selectors = [
+      `div[role="row"][row-index="${recordNumber}"] div[col-id="${columnId}"]`,
+      `div.ag-row[row-index="${recordNumber}"] div[col-id="${columnId}"]`,
+    ];
+
+    let cellElement = null;
+    for (const selector of selectors) {
+      cellElement = await this.page.$(selector);
+      if (cellElement) break;
+    }
+
+    if (!cellElement) {
+      throw new Error(`Failed to find cell at row ${recordNumber}, column ${columnId} in ${this.gridContext}`);
+    }
+
+    return await cellElement.textContent() || '';
+  }
+
+  /**
+   * Clicks a specific cell in the grid
+   */
+  async clickCell(recordNumber: number, columnId: string): Promise<void> {
+    await this.xrmHelper.waitForXrmReady();
+    
+    const selectors = [
+      `div[role="row"][row-index="${recordNumber}"] div[col-id="${columnId}"]`,
+      `div.ag-row[row-index="${recordNumber}"] div[col-id="${columnId}"]`,
+    ];
+
+    let cellElement = null;
+    for (const selector of selectors) {
+      cellElement = await this.page.$(selector);
+      if (cellElement) break;
+    }
+
+    if (!cellElement) {
+      throw new Error(`Failed to find cell at row ${recordNumber}, column ${columnId} in ${this.gridContext}`);
+    }
+
+    await cellElement.click();
+    await this.page.waitForTimeout(500);
   }
 }
