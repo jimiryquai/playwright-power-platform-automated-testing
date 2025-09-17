@@ -1,22 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { XrmHelper } from '../utils/XrmHelper';  // Comment out
-import 'dotenv/config';
-
-interface Config {
-  appUrl: string;
-  appName: string;
-  username: string;
-  password: string;
-  tenantId: string;
-}
-
-const config: Config = {
-  appUrl: process.env.APP_URL || 'https://jamesryan-dev.crm11.dynamics.com', // Change to your D365 URL
-  appName: process.env.APP_NAME || 'Microsoft',
-  username: process.env.O365_USERNAME || 'test_user',
-  password: process.env.O365_PASSWORD || 'test_pass',
-  tenantId: process.env.O365_TENANT_ID || 'test_tenant',
-};
+import { XrmHelper } from '../utils/XrmHelper';
+import { testConfig, validateConfig } from '../config/TestConfig';
+import path from 'path';
 
 test.describe('MDA Tests', () => {
   let xrmHelper: XrmHelper;
@@ -24,19 +9,14 @@ test.describe('MDA Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 2560, height: 1440 });
     xrmHelper = new XrmHelper(page);
-
-    // Go to your actual D365 URL, not microsoft.com
-    await page.goto(config.appUrl); // Make sure this is your D365 URL
+    
+    await page.goto(testConfig.appUrl);
 
     // Wait for Xrm to be ready
     await xrmHelper.waitForXrmReady();
   });
 
   test('basic mda test', async ({ page }) => {
-    // Debug: Log current state
-    console.log('=== DEBUG INFO ===');
-    console.log('Current URL:', page.url());
-    console.log('Page title:', await page.title());
 
     // Debug: Check Xrm status in detail
     const xrmStatus = await page.evaluate(() => {
@@ -69,9 +49,6 @@ test.describe('MDA Tests', () => {
         return { error: typeof error === 'object' && error !== null && 'message' in error ? (error as { message: string }).message : String(error) };
       }
     });
-
-    console.log('User info result:', userInfo);
-    console.log('=== END DEBUG ===');
 
     // Your original assertions
     expect(userInfo.userName).toBeTruthy();

@@ -12,6 +12,7 @@ const config = {
 };
 
 setup('authenticate', async ({ page }) => {
+
   await page.setViewportSize({ width: 2560, height: 1440 });
 
   // Create auth directory if it doesn't exist
@@ -30,4 +31,5 @@ setup('authenticate', async ({ page }) => {
 
   // Save auth state
   await page.context().storageState({ path: authFile });
+  
 });

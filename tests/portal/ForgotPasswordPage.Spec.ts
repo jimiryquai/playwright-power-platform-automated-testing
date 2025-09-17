@@ -9,7 +9,7 @@ interface Config {
  
 // Load configuration values, falling back to defaults if environment variables are not set
 const config: Config = {
-  appUrl: process.env.APP_URL || 'default_url',
+  appUrl: process.env.PORTAL_URL || 'default_url',
 };
 
 //3205 - Forgot Password - Resend Verification Code Without Email
