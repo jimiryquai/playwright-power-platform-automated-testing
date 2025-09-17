@@ -83,26 +83,26 @@ jobs:
 
   - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
     artifact: portal-report
-#   - task: PublishTestResults@2
-#     displayName: Publish Test Results
-#     inputs:
-#       testResultsFormat: 'JUnit'
-#       testResultsFiles: '**/TEST-*.xml'
-#       searchFolder: '$(Build.ArtifactStagingDirectory)'
-#       mergeTestResults: true
-#       failTaskOnFailedTests: true
-#       failTaskOnFailureToPublishResults: true
-#       failTaskOnMissingResultsFile: true
+  - task: PublishTestResults@2
+    displayName: Publish Test Results
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/TEST-*.xml'
+      searchFolder: '$(Build.ArtifactStagingDirectory)'
+      mergeTestResults: true
+      failTaskOnFailedTests: true
+      failTaskOnFailureToPublishResults: true
+      failTaskOnMissingResultsFile: true
 
-# # -------------------------------
-# # Public File Tests Job
-# # -------------------------------
-# - job: PublicFile_Tests
-#   displayName: Run Public File Tests
-#   steps:
-#   - checkout: self
-#     persistCredentials: true
-#     clean: true
+# -------------------------------
+# Public File Tests Job
+# -------------------------------
+- job: PublicFile_Tests
+  displayName: Run Public File Tests
+  steps:
+  - checkout: self
+    persistCredentials: true
+    clean: true
 
   - task: mightoria-playwrightForPowerPlatform@1
     displayName: Public File Tests
@@ -136,6 +136,6 @@ jobs:
       searchFolder: '$(Build.ArtifactStagingDirectory)'
       mergeTestResults: true
       failTaskOnFailedTests: true
-      failTaskOnFailureToPublishResults: true
-      failTaskOnMissingResultsFile: true
+  #     failTaskOnFailureToPublishResults: true
+  #     failTaskOnMissingResultsFile: true
 
