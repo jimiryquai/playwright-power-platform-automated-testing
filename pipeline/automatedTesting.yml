@@ -17,7 +17,7 @@ jobs:
 
   - task: mightoria-playwrightForPowerPlatformAdvanced@1
     inputs:
-      testLocation: '$(System.DefaultWorkingDirectory)/tests'
+      testLocation: '$(System.DefaultWorkingDirectory)/tests/mda'
       browser: 'chromium'
       trace: 'on'
       outputLocation: '$(System.DefaultWorkingDirectory)'
