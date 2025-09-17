@@ -24,7 +24,7 @@ setup('authenticate', async ({ page }) => {
 
   await page.goto(config.appUrl);
   await loginPage.login(config.username, config.password);
-  await page.waitForLoadState('networkidle');
+  //await page.waitForLoadState('networkidle');
 
   // Minimal verification - just check auth worked
   await expect(page).toHaveURL(/dynamics\.com/);
