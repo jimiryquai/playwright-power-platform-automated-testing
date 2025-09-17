@@ -32,23 +32,23 @@ jobs:
       team: 'futuretrstest'
       businessUnit: 'futuretrstest'
 
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: '$(System.DefaultWorkingDirectory)/playwright-report'
-      includeRootFolder: true
-      archiveType: 'zip'
-      archiveFile: '$(Build.ArtifactStagingDirectory)/test-results/playwright-report.zip'
-      replaceExistingArchive: true
+  # - task: ArchiveFiles@2
+  #   inputs:
+  #     rootFolderOrFile: '$(System.DefaultWorkingDirectory)/playwright-report'
+  #     includeRootFolder: true
+  #     archiveType: 'zip'
+  #     archiveFile: '$(Build.ArtifactStagingDirectory)/test-results/playwright-report.zip'
+  #     replaceExistingArchive: true
   
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)/test-results'
-      ArtifactName: 'playwright-report'
+  # - task: PublishBuildArtifacts@1
+  #   inputs:
+  #     PathtoPublish: '$(Build.ArtifactStagingDirectory)/test-results'
+  #     ArtifactName: 'playwright-report'
 
-  - task: PublishTestResults@2
-    inputs:
-        testResultsFormat: 'JUnit'
-        testResultsFiles: '**/TEST-*.xml'
+  # - task: PublishTestResults@2
+  #   inputs:
+  #       testResultsFormat: 'JUnit'
+  #       testResultsFiles: '**/TEST-*.xml'
   
 # -------------------------------
 # Portal Tests Job
@@ -83,26 +83,26 @@ jobs:
 
   - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
     artifact: portal-report
-  - task: PublishTestResults@2
-    displayName: Publish Test Results
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/TEST-*.xml'
-      searchFolder: '$(Build.ArtifactStagingDirectory)'
-      mergeTestResults: true
-      failTaskOnFailedTests: true
-      failTaskOnFailureToPublishResults: true
-      failTaskOnMissingResultsFile: true
+#   - task: PublishTestResults@2
+#     displayName: Publish Test Results
+#     inputs:
+#       testResultsFormat: 'JUnit'
+#       testResultsFiles: '**/TEST-*.xml'
+#       searchFolder: '$(Build.ArtifactStagingDirectory)'
+#       mergeTestResults: true
+#       failTaskOnFailedTests: true
+#       failTaskOnFailureToPublishResults: true
+#       failTaskOnMissingResultsFile: true
 
-# -------------------------------
-# Public File Tests Job
-# -------------------------------
-- job: PublicFile_Tests
-  displayName: Run Public File Tests
-  steps:
-  - checkout: self
-    persistCredentials: true
-    clean: true
+# # -------------------------------
+# # Public File Tests Job
+# # -------------------------------
+# - job: PublicFile_Tests
+#   displayName: Run Public File Tests
+#   steps:
+#   - checkout: self
+#     persistCredentials: true
+#     clean: true
 
   - task: mightoria-playwrightForPowerPlatform@1
     displayName: Public File Tests
