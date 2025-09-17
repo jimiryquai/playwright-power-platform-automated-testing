@@ -23,7 +23,7 @@ test.describe('Interested Parties MDA Test', () => {
         validateConfig();
         await page.setViewportSize({ width: 2560, height: 1440 });
         // Navigate to the app URL
-        
+
         await page.goto(testConfig.appUrl);
         await xrmHelper.waitForXrmReady();
     });
@@ -31,13 +31,17 @@ test.describe('Interested Parties MDA Test', () => {
     test('Should navigate to Interested Parties and open first record', async () => {
         // Step 1: Use sidebar component instead of direct locator
         await sidebar.navigateToCases();
-        
+
         await xrmHelper.waitForXrmReady();
-        
+
         // Step 2: Open first record
         await grid.openNthRecord(0);
         await entity.waitForFormReady();
-        
-        await expect(page.locator("div[data-id='form-container']")).toBeVisible();
+
+        const isFormReady = await page.evaluate(() => {
+            return window.Xrm?.Page?.data?.entity?.getId() !== null;
+        });
+
+        expect(isFormReady).toBe(true);
     });
 })

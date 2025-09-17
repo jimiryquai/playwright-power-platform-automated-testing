@@ -13,226 +13,274 @@ export class Grid {
   }
 
   /**
-   * DEBUG VERSION: Comprehensive DOM inspection
+   * Opens the record in the grid at the n-th index by double-clicking
+   * @param recordNumber Zero-based index of the record to open
+   * @param columnIndex Column to click (defaults to 2 - the main record field)
    */
-  async openNthRecord(recordNumber: number): Promise<void> {
+  async openNthRecord(recordNumber: number, columnIndex: number = 2): Promise<void> {
     await this.xrmHelper.waitForXrmReady();
+    await this.waitForGridReady();
     
-    console.log(`\n=== DEBUG: Trying to open record ${recordNumber} in ${this.gridContext} ===`);
+    // Find specific row and column
+    const selector = `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="${columnIndex}"]`;
     
-    // Wait a bit for grid to populate
-    await this.page.waitForTimeout(3000);
-    
-    // STEP 1: Check all possible grid containers
-    console.log('\n--- STEP 1: Grid Containers ---');
-    const gridContainers = [
-      '[role="grid"]',
-      'div.ag-root',
-      'div.ag-center-cols-container',
-      'div[data-lp-id*="Grid"]',
-      '.ms-DetailsList',
-      '[class*="grid"]'
-    ];
-    
-    for (const selector of gridContainers) {
-      const elements = await this.page.$$(selector);
-      console.log(`${selector}: ${elements.length} found`);
-      
-      if (elements.length > 0) {
-        const firstEl = elements[0];
-        const classes = await firstEl.getAttribute('class');
-        const role = await firstEl.getAttribute('role');
-        console.log(`  - First element class: "${classes}"`);
-        console.log(`  - First element role: "${role}"`);
-      }
+    const targetElement = await this.page.$(selector);
+
+    if (!targetElement) {
+      throw new Error(`Failed to find column ${columnIndex} in row ${recordNumber} for ${this.gridContext}. Available rows: ${await this.getGridRowCount()}`);
     }
-    
-    // STEP 2: Check all possible row elements
-    console.log('\n--- STEP 2: Row Elements ---');
-    const rowSelectors = [
-      'div[role="row"]',
-      'div.ag-row',
-      'div[row-index]',
-      'tr[role="row"]',
-      'div[data-selection-index]',
-      '[aria-rowindex]'
-    ];
-    
-    for (const selector of rowSelectors) {
-      const elements = await this.page.$$(selector);
-      console.log(`${selector}: ${elements.length} found`);
-      
-      // Show details of first few rows
-      for (let i = 0; i < Math.min(3, elements.length); i++) {
-        const el = elements[i];
-        const rowIndex = await el.getAttribute('row-index');
-        const ariaRowIndex = await el.getAttribute('aria-rowindex');
-        const dataIndex = await el.getAttribute('data-selection-index');
-        const classes = await el.getAttribute('class');
-        
-        console.log(`  Row ${i}:`);
-        console.log(`    - row-index: "${rowIndex}"`);
-        console.log(`    - aria-rowindex: "${ariaRowIndex}"`);
-        console.log(`    - data-selection-index: "${dataIndex}"`);
-        console.log(`    - classes: "${classes?.substring(0, 100)}..."`);
-      }
-    }
-    
-    // STEP 3: Try to find specific row
-    console.log(`\n--- STEP 3: Looking for record ${recordNumber} ---`);
-    const targetSelectors = [
-      `div[role="row"][row-index="${recordNumber}"]`,
-      `div[role="row"][aria-rowindex="${recordNumber + 1}"]`, // aria-rowindex might be 1-based
-      `div[role="row"][aria-rowindex="${recordNumber + 2}"]`, // might skip header
-      `div.ag-row[row-index="${recordNumber}"]`,
-      `div[role="row"]:nth-child(${recordNumber + 1})`,
-      `div[role="row"]:nth-child(${recordNumber + 2})`,
-      `tr:nth-child(${recordNumber + 1})`,
-      `tr:nth-child(${recordNumber + 2})`
-    ];
-    
-    let foundElement = null;
-    let workingSelector = '';
-    
-    for (const selector of targetSelectors) {
-      const element = await this.page.$(selector);
-      if (element) {
-        foundElement = element;
-        workingSelector = selector;
-        console.log(`✅ FOUND with selector: "${selector}"`);
-        
-        // Get element details
-        const text = await element.textContent();
-        const classes = await element.getAttribute('class');
-        console.log(`   - Text content: "${text?.substring(0, 100)}..."`);
-        console.log(`   - Classes: "${classes}"`);
-        break;
-      } else {
-        console.log(`❌ NOT FOUND: "${selector}"`);
-      }
-    }
-    
-    // STEP 4: Show page screenshot for visual debugging
-    console.log('\n--- STEP 4: Taking screenshot ---');
-    await this.page.screenshot({ path: `grid-debug-${Date.now()}.png` });
-    console.log('Screenshot saved');
-    
-    // STEP 5: Show current URL and page title
-    console.log('\n--- STEP 5: Page Info ---');
-    console.log(`URL: ${this.page.url()}`);
-    console.log(`Title: ${await this.page.title()}`);
-    
-    // STEP 6: Try to click if found
-    if (foundElement) {
-      console.log(`\n--- STEP 6: Attempting click with "${workingSelector}" ---`);
-      try {
-        await foundElement.dblclick();
-        console.log('✅ Double-click successful');
-        await this.xrmHelper.waitForXrmReady();
-      } catch (error) {
-        if (error instanceof Error) {
-          console.log(`❌ Double-click failed: ${error.message}`);
-        } else {
-          console.log(`❌ Double-click failed: ${String(error)}`);
-        }
-      }
-    } else {
-      console.log('\n--- STEP 6: NO ELEMENT FOUND TO CLICK ---');
-      throw new Error(`Failed to find grid row ${recordNumber} in ${this.gridContext} after comprehensive debug`);
-    }
-    
-    console.log(`=== END DEBUG for record ${recordNumber} ===\n`);
+
+    await targetElement.dblclick();
+    await this.xrmHelper.waitForXrmReady();
   }
 
   /**
-   * DEBUG VERSION: Show all available rows
+   * Opens the main record (always uses column 2 - the primary field)
+   */
+  async openRecordMainField(recordNumber: number): Promise<void> {
+    await this.openNthRecord(recordNumber, 2);
+  }
+
+  /**
+   * Clicks a specific column in a record (useful for lookup fields)
+   */
+  async clickRecordColumn(recordNumber: number, columnIndex: number): Promise<void> {
+    await this.openNthRecord(recordNumber, columnIndex);
+  }
+
+  /**
+   * Selects the record in the grid at the n-th index by clicking the checkbox
+   */
+  async selectNthRecord(recordNumber: number): Promise<void> {
+    await this.xrmHelper.waitForXrmReady();
+    await this.waitForGridReady();
+    
+    // Try to click the checkbox first (more reliable for selection)
+    const checkboxSelectors = [
+      `div[role="row"][row-index="${recordNumber}"] input[type="checkbox"]`,
+      `div[role="row"][row-index="${recordNumber}"] .ms-Checkbox-checkbox`,
+      `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="1"]`, // First column (status/checkbox)
+    ];
+
+    let element = null;
+    for (const selector of checkboxSelectors) {
+      element = await this.page.$(selector);
+      if (element) break;
+    }
+
+    if (!element) {
+      throw new Error(`Failed to find checkbox for row ${recordNumber} in ${this.gridContext}`);
+    }
+
+    await element.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * Gets the total number of data rows in the grid (excluding header)
    */
   async getGridRowCount(): Promise<number> {
     await this.xrmHelper.waitForXrmReady();
-    await this.page.waitForTimeout(2000);
+    await this.waitForGridReady();
     
-    console.log('\n=== DEBUG: getGridRowCount ===');
-    
-    const allSelectors = [
-      'div[role="row"]',
-      'div.ag-row',
-      'div[row-index]',
-      'tr[role="row"]',
-      'tr',
-      '[aria-rowindex]',
-      'div[data-selection-index]'
+    // Use the selectors proven to work from debug
+    const selectors = [
+      'div.ag-row', // Primary: data rows only
+      'div[row-index]', // Backup: includes data rows with index
     ];
-    
-    let maxCount = 0;
-    let bestSelector = '';
-    
-    for (const selector of allSelectors) {
-      const elements = await this.page.$$(selector);
-      console.log(`${selector}: ${elements.length} elements`);
-      
-      if (elements.length > maxCount) {
-        maxCount = elements.length;
-        bestSelector = selector;
+
+    for (const selector of selectors) {
+      const rows = await this.page.$$(selector);
+      if (rows.length > 0) {
+        return rows.length;
       }
     }
     
-    console.log(`\nBest selector: "${bestSelector}" with ${maxCount} rows`);
-    console.log('=== END getGridRowCount DEBUG ===\n');
-    
-    return maxCount;
+    return 0;
   }
 
   /**
-   * Simple select method for testing
+   * Waits for grid to be fully ready with data
    */
-  async selectNthRecord(recordNumber: number): Promise<void> {
-    console.log(`DEBUG: selectNthRecord(${recordNumber}) - not implemented yet`);
+  async waitForGridReady(): Promise<void> {
+    await this.xrmHelper.waitForXrmReady();
+    
+    // Wait for AG-Grid root to be present
+    await this.page.waitForSelector('div.ag-root', { state: 'visible', timeout: 15000 });
+    
+    // Wait for at least one data row to appear (not just header)
+    await this.page.waitForSelector('div[role="row"][row-index="0"]', { state: 'visible', timeout: 15000 });
+    
+    // Small buffer to ensure grid is stable
     await this.page.waitForTimeout(1000);
   }
 
   /**
-   * Wait for any grid to be present
+   * Gets the text content of a specific cell using column ID
    */
-  async waitForGridReady(): Promise<void> {
-    console.log('DEBUG: waitForGridReady starting...');
+  async getCellText(recordNumber: number, columnId: string): Promise<string> {
+    await this.xrmHelper.waitForXrmReady();
+    await this.waitForGridReady();
+    
+    const cellSelector = `div[role="row"][row-index="${recordNumber}"] div[col-id="${columnId}"]`;
+    const cellElement = await this.page.$(cellSelector);
+
+    if (!cellElement) {
+      throw new Error(`Failed to find cell at row ${recordNumber}, column ${columnId} in ${this.gridContext}`);
+    }
+
+    return await cellElement.textContent() || '';
+  }
+
+  /**
+   * Gets the text content of a cell by column index
+   */
+  async getCellTextByIndex(recordNumber: number, columnIndex: number): Promise<string> {
+    await this.xrmHelper.waitForXrmReady();
+    await this.waitForGridReady();
+    
+    const cellSelector = `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="${columnIndex}"]`;
+    const cellElement = await this.page.$(cellSelector);
+
+    if (!cellElement) {
+      throw new Error(`Failed to find cell at row ${recordNumber}, column index ${columnIndex} in ${this.gridContext}`);
+    }
+
+    return await cellElement.textContent() || '';
+  }
+
+  /**
+   * Clicks a specific cell in the grid using column ID
+   */
+  async clickCell(recordNumber: number, columnId: string): Promise<void> {
+    await this.xrmHelper.waitForXrmReady();
+    await this.waitForGridReady();
+    
+    const cellSelector = `div[role="row"][row-index="${recordNumber}"] div[col-id="${columnId}"]`;
+    const cellElement = await this.page.$(cellSelector);
+
+    if (!cellElement) {
+      throw new Error(`Failed to find cell at row ${recordNumber}, column ${columnId} in ${this.gridContext}`);
+    }
+
+    await cellElement.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * Clicks a specific cell by column index
+   */
+  async clickCellByIndex(recordNumber: number, columnIndex: number): Promise<void> {
+    await this.xrmHelper.waitForXrmReady();
+    await this.waitForGridReady();
+    
+    const cellSelector = `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="${columnIndex}"]`;
+    const cellElement = await this.page.$(cellSelector);
+
+    if (!cellElement) {
+      throw new Error(`Failed to find cell at row ${recordNumber}, column index ${columnIndex} in ${this.gridContext}`);
+    }
+
+    await cellElement.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * Searches for a record in the grid
+   */
+  async searchForRecord(searchText: string): Promise<void> {
     await this.xrmHelper.waitForXrmReady();
     
-    const gridWaitSelectors = [
-      '[role="grid"]',
-      'div.ag-root',
-      'div[data-lp-id*="Grid"]',
-      '.ms-DetailsList'
+    const searchSelectors = [
+      '[data-id="quickFind_text"]',
+      '[aria-label*="Search"]',
+      'input[placeholder*="Search"]',
+      '.ms-SearchBox-field'
     ];
+
+    let searchBox = null;
+    for (const selector of searchSelectors) {
+      searchBox = await this.page.$(selector);
+      if (searchBox) break;
+    }
+
+    if (!searchBox) {
+      throw new Error(`Could not find search box in ${this.gridContext}`);
+    }
+
+    await searchBox.fill('');
+    await searchBox.fill(searchText);
+    await searchBox.press('Enter');
     
-    for (const selector of gridWaitSelectors) {
-      try {
-        await this.page.waitForSelector(selector, { state: 'visible', timeout: 5000 });
-        console.log(`DEBUG: Found grid with selector: ${selector}`);
-        break;
-      } catch {
-        console.log(`DEBUG: Grid not found with: ${selector}`);
+    // Wait for search results to load
+    await this.waitForGridReady();
+  }
+
+  /**
+   * Combined workflow: search for a record and open it
+   */
+  async searchAndOpenRecord(searchText: string, recordIndex: number = 0, columnIndex: number = 2): Promise<void> {
+    await this.searchForRecord(searchText);
+    await this.openNthRecord(recordIndex, columnIndex);
+  }
+
+  /**
+   * Gets the main field text for a specific row (column 2)
+   */
+  async getRecordName(recordNumber: number): Promise<string> {
+    return await this.getCellTextByIndex(recordNumber, 2);
+  }
+
+  /**
+   * Checks if a specific row exists
+   */
+  async hasRecord(recordNumber: number): Promise<boolean> {
+    await this.waitForGridReady();
+    
+    const element = await this.page.$(`div[role="row"][row-index="${recordNumber}"]`);
+    return element !== null;
+  }
+
+  /**
+   * Gets all visible column headers and their indices
+   */
+  async getColumnInfo(): Promise<Array<{index: number, text: string}>> {
+    await this.waitForGridReady();
+    
+    const headerCells = await this.page.$$('div.ag-header-row div[role="columnheader"]');
+    const columns = [];
+    
+    for (let i = 0; i < headerCells.length; i++) {
+      const cell = headerCells[i];
+      const text = await cell.textContent() || '';
+      const ariaColIndex = await cell.getAttribute('aria-colindex');
+      
+      if (ariaColIndex) {
+        columns.push({
+          index: parseInt(ariaColIndex),
+          text: text.trim()
+        });
       }
     }
     
-    await this.page.waitForTimeout(2000);
-    console.log('DEBUG: waitForGridReady completed');
+    return columns;
   }
 
-  // Minimal implementations for other methods
-  async searchForRecord(searchText: string): Promise<void> {
-    console.log(`DEBUG: searchForRecord("${searchText}") - not implemented`);
-  }
+  /**
+   * Double-clicks on any element within a specific row and column
+   */
+  async doubleClickCell(recordNumber: number, columnIndex: number): Promise<void> {
+    await this.xrmHelper.waitForXrmReady();
+    await this.waitForGridReady();
+    
+    const cellSelector = `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="${columnIndex}"]`;
+    const cellElement = await this.page.$(cellSelector);
 
-  async searchAndOpenRecord(searchText: string, recordIndex: number = 0): Promise<void> {
-    console.log(`DEBUG: searchAndOpenRecord("${searchText}", ${recordIndex}) - not implemented`);
-  }
+    if (!cellElement) {
+      throw new Error(`Failed to find cell at row ${recordNumber}, column index ${columnIndex} in ${this.gridContext}`);
+    }
 
-  async getCellText(recordNumber: number, columnId: string): Promise<string> {
-    console.log(`DEBUG: getCellText(${recordNumber}, "${columnId}") - not implemented`);
-    return 'DEBUG_TEXT';
-  }
-
-  async clickCell(recordNumber: number, columnId: string): Promise<void> {
-    console.log(`DEBUG: clickCell(${recordNumber}, "${columnId}") - not implemented`);
+    await cellElement.dblclick();
+    await this.page.waitForTimeout(500);
   }
 }
