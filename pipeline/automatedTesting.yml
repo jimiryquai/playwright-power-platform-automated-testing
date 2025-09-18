@@ -1,178 +1,58 @@
 trigger:
 - none
 
+parameters:
+- name: runMDA
+  displayName: 'Run MDA Tests'
+  type: boolean
+  default: true
+
+- name: runPortal
+  displayName: 'Run Portal Tests'
+  type: boolean
+  default: false
+
+- name: runPublicFile
+  displayName: 'Run Public File Tests'
+  type: boolean
+  default: false
+
 pool:
   vmImage: windows-latest
 
 jobs:
-# -------------------------------
-# MDA Tests Job
-# -------------------------------
-- job: MDA_Tests
-  displayName: Run MDA Tests
-  steps:
-  - checkout: self
-    persistCredentials: true
-    clean: true
+# MDA Tests
+- ${{ if eq(parameters.runMDA, true) }}:
+  - template: templates/test-job-template.yml
+    parameters:
+      jobName: 'MDA_Tests'
+      displayName: 'Run MDA Tests'
+      testScript: 'npm run test:mda'
+      environmentVariables:
+        MDA_URL: '$(MDA_URL)'
+        APP_NAME: '$(APP_NAME)'
+        O365_USERNAME: '$(O365Username)'
+        O365_PASSWORD: '$(O365Password)'
 
-  - task: NodeTool@0
-    displayName: 'Use Node.js 18.x'
-    inputs:
-      versionSpec: '18.x'
-      checkLatest: true
+# Portal Tests
+- ${{ if eq(parameters.runPortal, true) }}:
+  - template: templates/test-job-template.yml
+    parameters:
+      jobName: 'Portal_Tests'
+      displayName: 'Run Portal Tests'
+      testScript: 'npm run test:portal'
+      environmentVariables:
+        PORTAL_URL: '$(PORTAL_URL)'
+        B2C_USERNAME: '$(B2C_USERNAME)'
+        B2C_PASSWORD: '$(B2C_PASSWORD)'
 
-  - task: Npm@1
-    displayName: 'Install dependencies'
-    inputs:
-      command: 'ci'
-
-  - task: PowerShell@2
-    displayName: 'Run MDA Tests'
-    env:
-      MDA_URL: '$(MDA_URL)'
-      APP_NAME: '$(APP_NAME)'
-      O365_USERNAME: '$(O365Username)'
-      O365_PASSWORD: '$(O365Password)'
-    inputs:
-      targetType: 'inline'
-      script: |
-        npx playwright install chromium
-        npm run test:mda
-
-  - task: PublishTestResults@2
-    condition: succeededOrFailed()
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/results.xml'
-
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Test Reports'
-    condition: succeededOrFailed()
-    inputs:
-      PathtoPublish: '$(System.DefaultWorkingDirectory)/playwright-report'
-      ArtifactName: 'mda-test-results'
-
-  # - task: mightoria-playwrightForPowerPlatformAdvanced@1
-  #   inputs:
-  #     testLocation: '$(System.DefaultWorkingDirectory)/tests/mda'
-  #     browser: 'chromium'
-  #     trace: 'on'
-  #     outputLocation: '$(System.DefaultWorkingDirectory)'
-  #     appUrl: 'https://futuretrsbuild.crm11.dynamics.com/main.aspx?appid=a38e444a-c33a-ef11-a317-002248c65cbe'
-  #     appName: 'TRACS'
-  #     o365Username: '$(O365UserName)'
-  #     o365Password: '$(O365Password)'
-  #     dynamicsUrl: 'https://futuretrsbuild.crm11.dynamics.com/'
-  #     clientId: '9e65885f-e920-41b3-a0ef-9a3212cd8ab0'
-  #     clientSecret: '$(ClientSecret)'
-  #     userRole: 'TRA Case Editor'
-  #     team: 'futuretrstest'
-  #     businessUnit: 'futuretrstest'
-
-  # - task: ArchiveFiles@2
-  #   inputs:
-  #     rootFolderOrFile: '$(System.DefaultWorkingDirectory)/playwright-report'
-  #     includeRootFolder: true
-  #     archiveType: 'zip'
-  #     archiveFile: '$(Build.ArtifactStagingDirectory)/test-results/playwright-report.zip'
-  #     replaceExistingArchive: true
-
-  # - task: PublishBuildArtifacts@1
-  #   inputs:
-  #     PathtoPublish: '$(Build.ArtifactStagingDirectory)/test-results'
-  #     ArtifactName: 'playwright-report'
-
-  # - task: PublishTestResults@2
-  #   inputs:
-  #       testResultsFormat: 'JUnit'
-  #       testResultsFiles: '**/TEST-*.xml'
-  
-# -------------------------------
-# Portal Tests Job
-# -------------------------------
-# - job: Portal_Tests
-#   displayName: Run Portal Tests
-#   steps:
-#   - checkout: self
-#     persistCredentials: true
-#     clean: true
-
-#   - task: mightoria-playwrightForPowerPlatform@1
-#     displayName: Portal Tests
-#     inputs:
-#       testLocation: '$(System.DefaultWorkingDirectory)/tests/portal'
-#       browser: 'chromium'
-#       trace: 'on'
-#       outputLocation: '$(Build.ArtifactStagingDirectory)/tests-portal'
-#       appUrl: 'https://future-trs.powerappsportals.com/'
-#       appName: 'TRACS'
-#       o365Username: '$(O365UserName)'
-#       o365Password: '$(O365Password)'
-
-#   - task: ArchiveFiles@2
-#     displayName: Archive Portal Tests
-#     inputs:
-#       rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/tests-portal'
-#       includeRootFolder: true
-#       archiveType: 'zip'
-#       archiveFile: '$(Build.ArtifactStagingDirectory)/archiveFiles/playwright-portal-tests-report.zip'
-#       replaceExistingArchive: true
-
-#   - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
-#     artifact: portal-report
-#   - task: PublishTestResults@2
-#     displayName: Publish Test Results
-#     inputs:
-#       testResultsFormat: 'JUnit'
-#       testResultsFiles: '**/TEST-*.xml'
-#       searchFolder: '$(Build.ArtifactStagingDirectory)'
-#       mergeTestResults: true
-      # failTaskOnFailedTests: true
-      # failTaskOnFailureToPublishResults: true
-      # failTaskOnMissingResultsFile: true
-
-# -------------------------------
-# Public File Tests Job
-# -------------------------------
-# - job: PublicFile_Tests
-#   displayName: Run Public File Tests
-#   steps:
-#   - checkout: self
-#     persistCredentials: true
-#     clean: true
-
-#   - task: mightoria-playwrightForPowerPlatform@1
-#     displayName: Public File Tests
-#     inputs:
-#       testLocation: '$(System.DefaultWorkingDirectory)/tests/public-file'
-#       browser: 'chromium'
-#       trace: 'on'
-#       outputLocation: '$(Build.ArtifactStagingDirectory)/tests-public-file'
-#       appUrl: 'https://future-trs.powerappsportals.com/'
-#       appName: 'TRACS'
-#       o365Username: '$(O365UserName)'
-#       o365Password: '$(O365Password)'
-
-#   - task: ArchiveFiles@2
-#     displayName: Archive Public File Tests
-#     inputs:
-#       rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/tests-public-file'
-#       includeRootFolder: true
-#       archiveType: 'zip'
-#       archiveFile: '$(Build.ArtifactStagingDirectory)/archiveFiles/playwright-public-file-tests-report.zip'
-#       replaceExistingArchive: true
-
-#   - publish: $(Build.ArtifactStagingDirectory)/archiveFiles/
-#     artifact: public-file-report
-
-#   - task: PublishTestResults@2
-#     displayName: Publish Test Results
-#     inputs:
-#       testResultsFormat: 'JUnit'
-#       testResultsFiles: '**/TEST-*.xml'
-#       searchFolder: '$(Build.ArtifactStagingDirectory)'
-#       mergeTestResults: true
-  #     failTaskOnFailedTests: true
-  #     failTaskOnFailureToPublishResults: true
-  #     failTaskOnMissingResultsFile: true
-
+# Public File Tests
+- ${{ if eq(parameters.runPublicFile, true) }}:
+  - template: templates/test-job-template.yml
+    parameters:
+      jobName: 'PublicFile_Tests'
+      displayName: 'Run Public File Tests'
+      testScript: 'npm run test:public-file'
+      environmentVariables:
+        PUBLIC_APP_URL: '$(PUBLIC_APP_URL)'
+        PUBLIC_APP_PASSWORD: '$(PUBLIC_APP_PASSWORD)'
