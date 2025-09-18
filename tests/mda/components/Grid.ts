@@ -130,7 +130,6 @@ export class Grid {
     }
 
     await cellElement.dblclick();
-    await this.page.waitForTimeout(500);
   }
 
    /**
