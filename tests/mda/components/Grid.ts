@@ -13,12 +13,26 @@ export class Grid {
   }
 
   /**
+ * Waits for grid to be fully ready with data
+ */
+  async waitForGridReady(): Promise<void> {
+    try {
+      await this.page.waitForSelector('#progressIndicatorContainer', { state: 'hidden', timeout: 5000 });
+    } catch (error) {
+      // Spinner might not be present or already hidden, continue with grid checks
+      console.log('Progress indicator not found or already hidden, proceeding...');
+    }
+
+    await this.page.waitForSelector('div.ag-root', { state: 'visible', timeout: 15000 });
+    await this.page.waitForSelector('div[role="row"][row-index="0"]', { state: 'visible', timeout: 15000 });
+  }
+
+  /**
    * Opens the record in the grid at the n-th index by double-clicking
    * @param recordNumber Zero-based index of the record to open
    * @param columnIndex Column to click (defaults to 2 - the main record field)
    */
   async openNthRecord(recordNumber: number, columnIndex: number = 2): Promise<void> {
-    await this.xrmHelper.waitForXrmReady();
     await this.waitForGridReady();
 
     const selector = `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="${columnIndex}"]`;
@@ -36,7 +50,6 @@ export class Grid {
    * Gets the total number of data rows in the grid (excluding header)
    */
   async getGridRowCount(): Promise<number> {
-    await this.xrmHelper.waitForXrmReady();
     await this.waitForGridReady();
 
     const selectors = [
@@ -55,26 +68,9 @@ export class Grid {
   }
 
   /**
-   * Waits for grid to be fully ready with data
-   */
-  async waitForGridReady(): Promise<void> {
-    await this.xrmHelper.waitForXrmReady();
-
-    // Wait for loading spinner to disappear
-    try {
-      await this.page.waitForSelector('#progressIndicatorContainer', { state: 'hidden', timeout: 30000 });
-    } catch {
-      // Spinner might not be present, continue
-    }
-
-    await this.page.waitForSelector('div.ag-root', { state: 'visible', timeout: 15000 });
-    await this.page.waitForSelector('div[role="row"][row-index="0"]', { state: 'visible', timeout: 15000 });
-  }
-  /**
    * Gets the text content of a cell by column index
    */
   async getCellTextByIndex(recordNumber: number, columnIndex: number): Promise<string> {
-    await this.xrmHelper.waitForXrmReady();
     await this.waitForGridReady();
 
     const cellSelector = `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="${columnIndex}"]`;
@@ -84,14 +80,15 @@ export class Grid {
       throw new Error(`Failed to find cell at row ${recordNumber}, column index ${columnIndex} in ${this.gridContext}`);
     }
 
-    return await cellElement.textContent() || '';
+    const textContent = await cellElement.textContent();
+    return textContent?.trim() || '';
   }
 
   /**
    * Gets the main field text for a specific row (column 2)
    */
-  async getRecordName(recordNumber: number): Promise<string> {
-    return await this.getCellTextByIndex(recordNumber, 2);
+  async getRecordName(recordNumber: number, columnIndex: number = 2): Promise<string> {
+    return await this.getCellTextByIndex(recordNumber, columnIndex);
   }
 
   /**
@@ -108,7 +105,7 @@ export class Grid {
       const text = await cell.textContent() || '';
       const ariaColIndex = await cell.getAttribute('aria-colindex');
 
-      if (ariaColIndex) {
+      if (ariaColIndex && !isNaN(parseInt(ariaColIndex))) {
         columns.push({
           index: parseInt(ariaColIndex),
           text: text.trim()
@@ -144,6 +141,8 @@ export class Grid {
   * @param columnIndex Column containing the lookup field
   */
   async clickLookupLink(recordNumber: number, columnIndex: number): Promise<void> {
+    await this.xrmHelper.waitForXrmReady();
+    await this.waitForGridReady();
     const lookupSelector = `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="${columnIndex}"] a.ms-Link`;
 
     const lookupElement = await this.page.$(lookupSelector);
