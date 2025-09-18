@@ -7,17 +7,15 @@ config({ path: path.resolve(__dirname, '../../.env') });
 export interface Config {
   azureAppUrl: string;
   azurePassword: string;
-  username: string;
 }
 
 export const testConfig: Config = {
   azureAppUrl: process.env.AZURE_APP_URL || '',
   azurePassword: process.env.AZURE_PASSWORD || '',
-  username: process.env.O365_USERNAME || '',
 };
 
 export const validateConfig = (): void => {
-  const requiredFields = ['azureAppUrl', 'azurePassword', 'username'];
+  const requiredFields = ['azureAppUrl', 'azurePassword'];
   const missing = requiredFields.filter(field => !testConfig[field as keyof Config]);
 
   if (missing.length > 0) {

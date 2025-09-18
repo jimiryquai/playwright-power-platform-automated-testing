@@ -6,8 +6,6 @@ import { Entity } from './utils/Entity';
 import { Sidebar } from './components/Sidebar';
 import { testConfig, validateConfig } from './TestConfig';
 
-test.describe.configure({ mode: 'serial' }); // Run tests one at a time, not in parallel
-
 test.describe('Grid Component - Basic Tests', () => {
     let page: Page;
     let grid: Grid;

@@ -1,0 +1,52 @@
+# templates/test-job-template.yml
+parameters:
+- name: jobName
+  type: string
+- name: displayName
+  type: string
+- name: testScript
+  type: string
+- name: environmentVariables
+  type: object
+  default: {}
+
+jobs:
+- job: ${{ parameters.jobName }}
+  displayName: ${{ parameters.displayName }}
+  steps:
+  - checkout: self
+    persistCredentials: true
+    clean: true
+
+  - task: NodeTool@0
+    displayName: 'Use Node.js 18.x'
+    inputs:
+      versionSpec: '18.x'
+
+  - task: Npm@1
+    displayName: 'Install dependencies'
+    inputs:
+      command: 'ci'
+
+  - task: PowerShell@2
+    displayName: 'Run Tests'
+    env: ${{ parameters.environmentVariables }}
+    inputs:
+      targetType: 'inline'
+      script: |
+        npx playwright install chromium
+        ${{ parameters.testScript }}
+
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/results.xml'
+      testRunTitle: '${{ parameters.displayName }}'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Test Reports'
+    condition: succeededOrFailed()
+    inputs:
+      PathtoPublish: '$(System.DefaultWorkingDirectory)/playwright-report'
+      ArtifactName: '${{ parameters.jobName }}-results'
