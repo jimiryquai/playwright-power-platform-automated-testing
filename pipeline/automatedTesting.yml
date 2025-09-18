@@ -36,6 +36,7 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
+        Write-Host "APP_URL: $env:APP_URL"
         npx playwright install chromium
         npm run test:mda
 
