@@ -14,7 +14,7 @@ export interface Config {
 
 export const testConfig: Config = {
   appUrl: process.env.APP_URL || '',
-  mdaUrl: process.env.APP_URL || '',
+  mdaUrl: process.env.MDA_URL || '',
   appName: process.env.APP_NAME || '',
   username: process.env.O365_USERNAME || '',
   password: process.env.O365_PASSWORD || '',

@@ -1,5 +1,5 @@
 import { Page, Locator } from '@playwright/test';
-import { testConfig } from '../../config/TestConfig';
+import { testConfig } from '../TestConfig';
 
 export class OrganizationPage {
   private page: Page;

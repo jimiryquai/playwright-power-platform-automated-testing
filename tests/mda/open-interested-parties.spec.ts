@@ -21,7 +21,6 @@ test.describe('Grid Component - Basic Tests', () => {
         sidebar = new Sidebar(page);
 
         validateConfig();
-        await page.setViewportSize({ width: 2560, height: 1440 });
         await page.goto(testConfig.appUrl);
         await xrmHelper.waitForXrmReady();
         await sidebar.navigateToCases();
