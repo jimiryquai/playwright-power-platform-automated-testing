@@ -1,5 +1,12 @@
 trigger:
-- none
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - tests/*
+    exclude:
+    - README.md
 
 parameters:
 - name: runMDA
