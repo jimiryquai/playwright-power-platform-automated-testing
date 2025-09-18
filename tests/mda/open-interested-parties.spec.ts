@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 import { Page } from '@playwright/test';
 import { Grid } from './components/Grid';
 import { XrmHelper } from './utils/XrmHelper';
-import { Entity } from './utils/Entity';
 import { Sidebar } from './components/Sidebar';
 import { testConfig, validateConfig } from './TestConfig';
 
@@ -21,6 +20,19 @@ test.describe('Grid Component - Basic Tests', () => {
         validateConfig();
         await page.goto(testConfig.mdaUrl);
         await xrmHelper.waitForXrmReady();
+
+        // Add debugging for pipeline
+        console.log('Checking sidebar state...');
+        await page.screenshot({ path: 'debug-sidebar.png', fullPage: true });
+
+        // List all elements with aria-label to see what's actually there
+        const ariaElements = await page.locator('[aria-label]').all();
+        console.log(`Found ${ariaElements.length} elements with aria-label:`);
+        for (const element of ariaElements) {
+            const label = await element.getAttribute('aria-label');
+            const isVisible = await element.isVisible();
+            console.log(`  "${label}": visible=${isVisible}`);
+        }
 
         // Check if Cases link is visible before clicking
         if (!(await sidebar.isEntityVisible('Cases'))) {
