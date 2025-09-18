@@ -5,9 +5,9 @@
   "scripts": {
     "setup": "npx playwright install",
     "test": "npx playwright test",
-    "test:mda": "npx playwright test --project=mda-tests --reporter=junit --reporter=html",
-    "test:portal": "npx playwright test --project=portal-tests --reporter=junit --reporter=html",
-    "test:public-file": "npx playwright test --project=public-file-tests --reporter=junit --reporter=html",
+    "test:mda": "npx playwright test --project=mda-tests --reporter=junit",
+    "test:portal": "npx playwright test --project=portal-tests --reporter=junit",
+    "test:public-file": "npx playwright test --project=public-file-tests",
     "setup:mda": "npx playwright test --project=mda-setup",
     "setup:portal": "npx playwright test --project=portal-setup",
     "setup:public-file": "npx playwright test --project=public-file-setup",
