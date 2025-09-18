@@ -25,13 +25,9 @@ setup('authenticate public-file', async ({ page }) => {
     await page.waitForTimeout(3000);
 
     // ASSERT - Verify we reached the authenticated page
-    // Note: You may need to adjust this selector based on your actual app
-    await expect(page).toHaveURL(/publicfile-test\.tangoromeoalpha\.co\.uk/);
+    await expect(page).toHaveURL(testConfig.azureAppUrl);
 
     // Save authentication state for reuse
     await page.context().storageState({ path: authFile });
     console.log('Public File auth saved successfully');
-
-    // Optional: Take screenshot for debugging
-    await page.screenshot({ path: 'public-file-login.png' });
 });
