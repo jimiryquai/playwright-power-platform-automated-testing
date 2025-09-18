@@ -54,5 +54,5 @@ jobs:
       displayName: 'Run Public File Tests'
       testScript: 'npm run test:public-file'
       environmentVariables:
-        PUBLIC_APP_URL: '$(PUBLIC_APP_URL)'
-        PUBLIC_APP_PASSWORD: '$(PUBLIC_APP_PASSWORD)'
+        AZURE_APP_URL: '$(AZURE_APP_URL)'
+        AZURE_PASSWORD: '$(AZURE_PASSWORD)'
