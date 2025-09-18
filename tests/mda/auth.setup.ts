@@ -6,7 +6,6 @@ import * as fs from 'fs';
 const authFile = 'auth/user.json';
 
 setup('authenticate', async ({ page }) => {
-
   validateConfig();
 
   if (!fs.existsSync('auth')) {
@@ -14,15 +13,38 @@ setup('authenticate', async ({ page }) => {
   }
 
   const loginPage = new LoginPage(page);
+  let authSuccess = false;
+  let attempts = 0;
+  const maxAttempts = 3;
 
-  await page.goto(testConfig.mdaUrl);
-  await loginPage.login(testConfig.username, testConfig.password);
+  while (!authSuccess && attempts < maxAttempts) {
+    try {
+      attempts++;
+      console.log(`Authentication attempt ${attempts}/${maxAttempts}`);
 
-  // Wait for page to be fully loaded after login redirect
-  await page.waitForLoadState('load');
+      await page.goto(testConfig.mdaUrl, { waitUntil: 'load', timeout: 60000 });
+      await loginPage.login(testConfig.username, testConfig.password);
+      await page.waitForLoadState('load');
 
-  await expect(page).toHaveURL(/dynamics\.com/, { timeout: 10000 });
+      // Check if we landed on an error page
+      const currentUrl = page.url();
+      if (currentUrl.includes('error/errorhandler.aspx')) {
+        throw new Error(`Authentication failed - landed on error page: ${currentUrl}`);
+      }
 
-  // Save auth state
+      await expect(page).toHaveURL(/dynamics\.com/, { timeout: 10000 });
+      authSuccess = true;
+      console.log('Authentication successful');
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.log(`Authentication attempt ${attempts} failed:`, errorMessage);
+      if (attempts === maxAttempts) {
+        throw error;
+      }
+      await page.reload({ waitUntil: 'load' });
+    }
+  }
+
   await page.context().storageState({ path: authFile });
 });
