@@ -21,6 +21,11 @@ test.describe('Grid Component - Basic Tests', () => {
         await page.goto(testConfig.mdaUrl);
         await xrmHelper.waitForXrmReady();
 
+        // Check if we landed on an error page from failed auth
+        if (page.url().includes('error/errorhandler.aspx')) {
+            throw new Error(`Test session landed on error page: ${page.url()}`);
+        }
+
         // Debug what page we're actually on
         console.log('Current URL:', page.url());
         console.log('Page title:', await page.title());
@@ -38,8 +43,6 @@ test.describe('Grid Component - Basic Tests', () => {
             throw new Error('Cases link not visible in sidebar');
         }
 
-        await sidebar.navigateToCases();
-        await xrmHelper.waitForXrmReady();
         await sidebar.navigateToCases();
         await xrmHelper.waitForXrmReady();
     });
