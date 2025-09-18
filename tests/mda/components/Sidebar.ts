@@ -29,6 +29,11 @@ export class Sidebar {
 
   // Check if entity is visible using aria-label
   async isEntityVisible(ariaLabel: string): Promise<boolean> {
-    return await this.page.locator(`[aria-label="${ariaLabel}"]`).isVisible();
+    try {
+      await this.page.locator(`[aria-label="${ariaLabel}"]`).waitFor({ state: 'visible', timeout: 10000 });
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

@@ -22,9 +22,6 @@ test.describe('Grid Component - Basic Tests', () => {
         await page.goto(testConfig.mdaUrl);
         await xrmHelper.waitForXrmReady();
 
-        // Wait for sidebar to load
-        await page.waitForSelector('[role="treeitem"]', { state: 'visible' });
-
         // Check if Cases link is visible before clicking
         if (!(await sidebar.isEntityVisible('Cases'))) {
             throw new Error('Cases link not visible in sidebar');
