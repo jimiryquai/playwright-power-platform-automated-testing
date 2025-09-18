@@ -29,7 +29,7 @@ jobs:
   - task: PowerShell@2
     displayName: 'Run Auth Test Only'
     env:
-      APP_URL: '$(MDA_URL)'
+      MDA_URL: '$(MDA_URL)'
       APP_NAME: '$(APP_NAME)'
       O365_USERNAME: '$(O365Username)'
       O365_PASSWORD: '$(O365Password)'
@@ -37,7 +37,7 @@ jobs:
       targetType: 'inline'
       script: |
         Write-Host "=== Environment Check ==="
-        Write-Host "APP_URL: $env:APP_URL"
+        Write-Host "MDA_URL: $env:MDA_URL"
         Write-Host "O365_USERNAME: $env:O365_USERNAME"
         Write-Host "Password set: $(if ($env:O365_PASSWORD) { 'YES' } else { 'NO' })"
         
