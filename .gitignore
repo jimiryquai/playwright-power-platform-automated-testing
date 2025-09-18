@@ -19,3 +19,6 @@ auth/auth.json
 # Any other auth state files
 *.auth.json
 *auth-state*
+
+# Images
+*.png
