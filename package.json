@@ -5,9 +5,12 @@
   "scripts": {
     "setup": "npx playwright install",
     "test": "npx playwright test",
+    "setup:mda": "npx playwright test --project=mda-setup",
+    "setup:portal": "npx playwright test --project=portal-setup",
     "setup:public-file": "npx playwright test --project=public-file-setup",
-    "codegen:public-file": "tsx scripts/codegen-public-file.ts",
-    "codegen:public-file:full": "npm run setup:public-file && npm run codegen:public-file"
+    "codegen:mda": "npm run setup:mda && tsx scripts/codegen-project.ts mda",
+    "codegen:portal": "npm run setup:portal && tsx scripts/codegen-project.ts portal",
+    "codegen:public-file": "npm run setup:public-file && tsx scripts/codegen-project.ts public-file"
   },
   "keywords": [],
   "author": "",
