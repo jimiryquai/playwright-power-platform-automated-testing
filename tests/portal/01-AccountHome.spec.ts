@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { testConfig, validateConfig } from '../config/TestConfig';
+import { testConfig, validateConfig } from './TestConfig';
 
 test('Account Home', async ({ page }) => {
   validateConfig();

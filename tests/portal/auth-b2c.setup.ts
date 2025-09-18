@@ -1,7 +1,7 @@
 import { test as setup, expect } from '@playwright/test';
 import { LoginPage } from './pages/LoginPage';
 import { PortalLoginPage } from './pages/PortalLoginPage';
-import { testConfig, validateConfig } from '../config/TestConfig';
+import { testConfig, validateConfig } from './TestConfig';
 import * as fs from 'fs';
 
 const authFile = 'auth/auth.json';
@@ -22,8 +22,8 @@ setup('authenticate', async ({ page }) => {
 
   // ACT - Perform the authentication flow
   await page.goto(testConfig.portalUrl);
-  await loginPage.login(testConfig.username, testConfig.password);
-  await portalLoginPage.login(testConfig.username, testConfig.password);
+  await loginPage.login(testConfig.b2cUsername, testConfig.b2cPassword);
+  await portalLoginPage.login(testConfig.b2cUsername, testConfig.b2cPassword);
 
   await page.waitForTimeout(3000); // Give B2C time to settle
 

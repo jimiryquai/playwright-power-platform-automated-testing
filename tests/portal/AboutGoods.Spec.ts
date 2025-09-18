@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { testConfig, validateConfig } from '../config/TestConfig';
+import { testConfig, validateConfig } from './TestConfig';
 import { OrganizationPage } from './pages/OrganizationPage';
 
 test.describe('About Goods Page Test Cases', () => {
