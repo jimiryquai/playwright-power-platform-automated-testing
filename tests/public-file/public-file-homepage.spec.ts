@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { testConfig } from '../config/TestConfig';
+import { testConfig } from './TestConfig';
 
 test.use({ storageState: 'auth/public-file.json' });
 

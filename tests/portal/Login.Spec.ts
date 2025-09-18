@@ -28,7 +28,7 @@ const config: Config = {
 
 // 3199- To validate User Login: Email and Password entry via login screen
 test('3199', async ({ page }) => {
-await page.goto(config.appUrl);
+  await page.goto(config.appUrl);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.getByRole('textbox', { name: 'Email address' }).click();
   await page.getByRole('textbox', { name: 'Email address' }).fill(config.b2cUsername);
@@ -36,17 +36,17 @@ await page.goto(config.appUrl);
   await page.getByRole('textbox', { name: 'Password' }).click();
   await page.getByRole('textbox', { name: 'Password' }).fill(config.b2cPassword);
   await page.waitForTimeout(1000);
-   await Promise.all([
+  await Promise.all([
     page.waitForNavigation(),
     page.getByRole('button', { name: 'Sign in' }).click(),
   ]);
   await page.waitForTimeout(1000);
-      await expect(page.locator('h1')).toMatchAriaSnapshot(`- heading "Account Home"`);
+  await expect(page.locator('h1')).toMatchAriaSnapshot(`- heading "Account Home"`);
 });
 
 //3206-Invalid verification code
 test('3206', async ({ page }) => {
-await page.goto(config.appUrl);
+  await page.goto(config.appUrl);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.locator('#pageHeading')).toMatchAriaSnapshot(`- heading "Sign in to your Trade Remedies Service account"`);
   await page.waitForTimeout(1000);
@@ -67,12 +67,11 @@ await page.goto(config.appUrl);
 
 //3202 - Login - Blank Email and Submission
 test('3202', async ({ page }) => {
-  
-  await page.goto(config.appUrl); //navigate to Tracs app
- await page.getByRole('button', { name: 'Sign in' }).click(); // click on sign in on home page
- await page.getByRole('button', { name: 'Sign in' }).click(); //click on sign in while leaving the email and password cell blank
 
-  await for error messages to pop up
+  await page.goto(config.appUrl); //navigate to Tracs app
+  await page.getByRole('button', { name: 'Sign in' }).click(); // click on sign in on home page
+  await page.getByRole('button', { name: 'Sign in' }).click(); //click on sign in while leaving the email and password cell blank
+
   await expect(page.getByLabel('Sign in with your email')).toMatchAriaSnapshot(`
 //     - text: Email
 //     - alert:
@@ -84,12 +83,13 @@ test('3202', async ({ page }) => {
     - alet: Please enter your password
     - textbox "Password"
     `);
+});
 
 
 //3203 - Login - Incorrect login attempt
 test('3203', async ({ page }) => {
 
-await page.goto(config.appUrl); //navigate to Tracs app
+  await page.goto(config.appUrl); //navigate to Tracs app
 
   //Log in with incorrect pasword
   await page.getByRole('button', { name: 'Sign in' }).click();
@@ -125,15 +125,15 @@ await page.goto(config.appUrl); //navigate to Tracs app
 
 //3204 - Login - Invalid login details
 test('3204', async ({ page }) => {
-    
+
   await page.goto(config.appUrl); //navigate to Tracs app
-  
+
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.getByRole('textbox', { name: 'Email address' }).click();
   await page.getByRole('textbox', { name: 'Email address' }).fill('UserName');
   await page.getByRole('textbox', { name: 'Password' }).click();
   await page.getByRole('textbox', { name: 'Password' }).fill('Password123$');
- 
+
   //await for error messages to pop up
   await expect(page.getByLabel('Sign in with your email')).toMatchAriaSnapshot(`
     - text: Email
@@ -146,7 +146,7 @@ test('3204', async ({ page }) => {
 
 //3242-Forgotten password Verification Screen: Not populating mandatory fields and testing for error messages-INCOMP
 test('3242', async ({ page }) => {
- 
+
   await expect(page.getByRole('heading')).toMatchAriaSnapshot(`- heading "Participate in a trade remedies investigation"`);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.locator('#pageHeading')).toMatchAriaSnapshot(`- heading "Sign in to your Trade Remedies Service account"`);
@@ -189,11 +189,11 @@ test('3254', async ({ page }) => {
   await expect(page.getByRole('heading')).toMatchAriaSnapshot(`- heading "Participate in a trade remedies investigation" [level=1]`);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.getByRole('textbox', { name: 'Email address' }).click();
-   await page.getByRole('textbox', { name: 'Email address' }).fill(config.b2cUsername);
+  await page.getByRole('textbox', { name: 'Email address' }).fill(config.b2cUsername);
   await page.getByRole('textbox', { name: 'Password' }).fill(config.b2cPassword);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.locator('h1')).toMatchAriaSnapshot(`- heading "Account Home" [level=1]`);
-// to add multiple tab in browser in same login session
+  // to add multiple tab in browser in same login session
 });
 
 

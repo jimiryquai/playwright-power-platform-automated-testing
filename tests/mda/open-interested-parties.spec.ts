@@ -4,7 +4,7 @@ import { Grid } from './components/Grid';
 import { XrmHelper } from './utils/XrmHelper';
 import { Entity } from './utils/Entity';
 import { Sidebar } from './components/Sidebar';
-import { testConfig, validateConfig } from '../config/TestConfig';
+import { testConfig, validateConfig } from './TestConfig';
 
 test.describe.configure({ mode: 'serial' }); // Run tests one at a time, not in parallel
 

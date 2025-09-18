@@ -1,6 +1,6 @@
 import { test as setup, expect } from '@playwright/test';
 import { PublicFileLoginPage } from './pages/PublicFileLoginPage';
-import { testConfig, validateConfig } from '../config/TestConfig';
+import { testConfig, validateConfig } from './TestConfig';
 import * as fs from 'fs';
 
 const authFile = 'auth/public-file.json';

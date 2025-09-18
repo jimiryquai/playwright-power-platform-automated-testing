@@ -1,6 +1,6 @@
 import { test as setup, expect } from '@playwright/test';
 import { LoginPage } from './pages/LoginPage';
-import { testConfig, validateConfig } from '../config/TestConfig';
+import { testConfig, validateConfig } from './TestConfig';
 import * as fs from 'fs';
 
 const authFile = 'auth/user.json';
@@ -25,5 +25,4 @@ setup('authenticate', async ({ page }) => {
 
   // Save auth state
   await page.context().storageState({ path: authFile });
-  
 });
