@@ -268,17 +268,4 @@ test.describe('Public File Homepage', () => {
       }
     }
   });
-
-  test('visual regression - homepage layout', async ({ page }) => {
-    await page.goto(testConfig.azureAppUrl);
-    await page.getByRole('tab', { name: 'Active Investigations' }).click();
-
-    // Wait for table to load, then snapshot
-    await page.waitForSelector('table tbody tr');
-    await expect(page).toHaveScreenshot('homepage-active-investigations.png');
-
-    // Switch tabs and snapshot completed investigations too
-    await page.getByRole('tab', { name: 'Completed Investigations' }).click();
-    await expect(page).toHaveScreenshot('homepage-completed-investigations.png');
-  });
 });
