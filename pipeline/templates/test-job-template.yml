@@ -19,9 +19,9 @@ jobs:
     clean: true
 
   - task: NodeTool@0
-    displayName: 'Use Node.js 18.x'
+    displayName: 'Use Node.js'
     inputs:
-      versionSpec: '18.x'
+      versionSpec: '20.x'
 
   - task: Npm@1
     displayName: 'Install dependencies'
