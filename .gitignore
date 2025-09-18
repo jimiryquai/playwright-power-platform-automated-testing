@@ -11,7 +11,7 @@ node_modules/
 .auth/
 user.json
 auth/
-
+results.xml
 # Authentication state files (contain sensitive session data)
 auth-state.json
 auth/auth.json
