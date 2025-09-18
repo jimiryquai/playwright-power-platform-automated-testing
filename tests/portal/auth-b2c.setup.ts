@@ -10,7 +10,6 @@ const authFile = 'auth/auth.json';
 setup('authenticate', async ({ page }) => {
   // ARRANGE - Set up test prerequisites
   validateConfig();
-  await page.setViewportSize({ width: 2560, height: 1440 });
 
   // Create auth directory if it doesn't exist
   if (!fs.existsSync('auth')) {

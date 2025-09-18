@@ -5,6 +5,7 @@ config({ path: path.resolve(__dirname, '../../.env') });
 
 export interface Config {
   appUrl: string;
+  mdaUrl: string;
   appName: string;
   username: string;
   password: string;
@@ -13,6 +14,7 @@ export interface Config {
 
 export const testConfig: Config = {
   appUrl: process.env.APP_URL || '',
+  mdaUrl: process.env.APP_URL || '',
   appName: process.env.APP_NAME || '',
   username: process.env.O365_USERNAME || '',
   password: process.env.O365_PASSWORD || '',

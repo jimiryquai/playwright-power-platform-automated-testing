@@ -8,7 +8,6 @@ const authFile = 'auth/user.json';
 setup('authenticate', async ({ page }) => {
 
   validateConfig();
-  await page.setViewportSize({ width: 2560, height: 1440 });
 
   // Create auth directory if it doesn't exist
   if (!fs.existsSync('auth')) {
@@ -17,7 +16,7 @@ setup('authenticate', async ({ page }) => {
 
   const loginPage = new LoginPage(page);
 
-  await page.goto(testConfig.appUrl);
+  await page.goto(testConfig.mdaUrl);
   await loginPage.login(testConfig.username, testConfig.password);
 
   // Minimal verification - just check auth worked

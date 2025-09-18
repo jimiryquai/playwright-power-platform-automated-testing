@@ -8,7 +8,6 @@ const authFile = 'auth/public-file.json';
 setup('authenticate public-file', async ({ page }) => {
     validateConfig();
     // ARRANGE - Set up test prerequisites
-    // await page.setViewportSize({ width: 2560, height: 1440 });
 
     // Create auth directory if it doesn't exist
     if (!fs.existsSync('auth')) {
