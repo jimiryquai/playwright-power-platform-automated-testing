@@ -15,40 +15,70 @@ jobs:
     persistCredentials: true
     clean: true
 
-  - task: mightoria-playwrightForPowerPlatformAdvanced@1
+  - task: NodeTool@0
+    displayName: 'Use Node.js 18.x'
     inputs:
-      testLocation: '$(System.DefaultWorkingDirectory)/tests/mda'
-      browser: 'chromium'
-      trace: 'on'
-      outputLocation: '$(System.DefaultWorkingDirectory)'
-      appUrl: 'https://futuretrsbuild.crm11.dynamics.com/main.aspx?appid=a38e444a-c33a-ef11-a317-002248c65cbe'
-      appName: 'TRACS'
-      o365Username: '$(O365UserName)'
-      o365Password: '$(O365Password)'
-      dynamicsUrl: 'https://futuretrsbuild.crm11.dynamics.com/'
-      clientId: '9e65885f-e920-41b3-a0ef-9a3212cd8ab0'
-      clientSecret: '$(ClientSecret)'
-      userRole: 'TRA Case Editor'
-      team: 'futuretrstest'
-      businessUnit: 'futuretrstest'
+      versionSpec: '18.x'
+      checkLatest: true
 
-  - task: ArchiveFiles@2
+  - task: Npm@1
+    displayName: 'Install dependencies'
     inputs:
-      rootFolderOrFile: '$(System.DefaultWorkingDirectory)/playwright-report'
-      includeRootFolder: true
-      archiveType: 'zip'
-      archiveFile: '$(Build.ArtifactStagingDirectory)/test-results/playwright-report.zip'
-      replaceExistingArchive: true
+      command: 'ci'
 
-  - task: PublishBuildArtifacts@1
+  - task: PowerShell@2
+    displayName: 'Run MDA Tests'
+    env:
+      APP_URL: '$(MDA_URL)'
+      APP_NAME: '$(APP_NAME)'
+      O365_USERNAME: '$(O365Username)'
+      O365_PASSWORD: '$(O365Password)'
     inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)/test-results'
-      ArtifactName: 'playwright-report'
+      targetType: 'inline'
+      script: |
+        npx playwright install chromium
+        npm run test:mda
 
   - task: PublishTestResults@2
+    condition: succeededOrFailed()
     inputs:
-        testResultsFormat: 'JUnit'
-        testResultsFiles: '**/TEST-*.xml'
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/results.xml'
+
+  # - task: mightoria-playwrightForPowerPlatformAdvanced@1
+  #   inputs:
+  #     testLocation: '$(System.DefaultWorkingDirectory)/tests/mda'
+  #     browser: 'chromium'
+  #     trace: 'on'
+  #     outputLocation: '$(System.DefaultWorkingDirectory)'
+  #     appUrl: 'https://futuretrsbuild.crm11.dynamics.com/main.aspx?appid=a38e444a-c33a-ef11-a317-002248c65cbe'
+  #     appName: 'TRACS'
+  #     o365Username: '$(O365UserName)'
+  #     o365Password: '$(O365Password)'
+  #     dynamicsUrl: 'https://futuretrsbuild.crm11.dynamics.com/'
+  #     clientId: '9e65885f-e920-41b3-a0ef-9a3212cd8ab0'
+  #     clientSecret: '$(ClientSecret)'
+  #     userRole: 'TRA Case Editor'
+  #     team: 'futuretrstest'
+  #     businessUnit: 'futuretrstest'
+
+  # - task: ArchiveFiles@2
+  #   inputs:
+  #     rootFolderOrFile: '$(System.DefaultWorkingDirectory)/playwright-report'
+  #     includeRootFolder: true
+  #     archiveType: 'zip'
+  #     archiveFile: '$(Build.ArtifactStagingDirectory)/test-results/playwright-report.zip'
+  #     replaceExistingArchive: true
+
+  # - task: PublishBuildArtifacts@1
+  #   inputs:
+  #     PathtoPublish: '$(Build.ArtifactStagingDirectory)/test-results'
+  #     ArtifactName: 'playwright-report'
+
+  # - task: PublishTestResults@2
+  #   inputs:
+  #       testResultsFormat: 'JUnit'
+  #       testResultsFiles: '**/TEST-*.xml'
   
 # -------------------------------
 # Portal Tests Job
