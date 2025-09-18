@@ -32,6 +32,7 @@
   "include": [
     "tests/**/*",
     "tests/portal/pages/**/*",
-    "tests/mda/utils/**/*"
+    "tests/mda/utils/**/*",
+    "scripts"
   ]
 }

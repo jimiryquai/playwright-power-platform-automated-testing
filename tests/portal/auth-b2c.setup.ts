@@ -2,6 +2,7 @@ import { test as setup, expect } from '@playwright/test';
 import { LoginPage } from './pages/LoginPage';
 import { PortalLoginPage } from './pages/PortalLoginPage';
 import { testConfig, validateConfig } from '../config/TestConfig';
+import * as fs from 'fs';
 
 const authFile = 'auth/auth.json';
 
@@ -10,6 +11,12 @@ setup('authenticate', async ({ page }) => {
   // ARRANGE - Set up test prerequisites
   validateConfig();
   await page.setViewportSize({ width: 2560, height: 1440 });
+
+  // Create auth directory if it doesn't exist
+  if (!fs.existsSync('auth')) {
+    fs.mkdirSync('auth');
+  }
+
   const loginPage = new LoginPage(page);
   const portalLoginPage = new PortalLoginPage(page);
 
