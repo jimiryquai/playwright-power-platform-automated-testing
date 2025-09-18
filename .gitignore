@@ -15,6 +15,7 @@ results.xml
 # Authentication state files (contain sensitive session data)
 auth-state.json
 auth/auth.json
+auth-state-local.json
 
 # Any other auth state files
 *.auth.json
