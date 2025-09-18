@@ -10,23 +10,28 @@ test.describe('Grid Component - Basic Tests', () => {
     let page: Page;
     let grid: Grid;
     let xrmHelper: XrmHelper;
-    let entity: Entity;
     let sidebar: Sidebar;
 
     test.beforeEach(async ({ page: testPage }) => {
         page = testPage;
         grid = new Grid(page, 'Active Cases');
         xrmHelper = new XrmHelper(page);
-        entity = new Entity(page);
         sidebar = new Sidebar(page);
 
         validateConfig();
         await page.goto(testConfig.mdaUrl);
         await xrmHelper.waitForXrmReady();
 
-        // ADD JUST THIS ONE LINE:
-        await page.screenshot({ path: 'debug-before-cases-click.png', fullPage: true });
+        // Wait for sidebar to load
+        await page.waitForSelector('[role="treeitem"]', { state: 'visible' });
 
+        // Check if Cases link is visible before clicking
+        if (!(await sidebar.isEntityVisible('Cases'))) {
+            throw new Error('Cases link not visible in sidebar');
+        }
+
+        await sidebar.navigateToCases();
+        await xrmHelper.waitForXrmReady();
         await sidebar.navigateToCases();
         await xrmHelper.waitForXrmReady();
     });
