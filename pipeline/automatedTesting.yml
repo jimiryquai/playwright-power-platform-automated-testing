@@ -42,7 +42,7 @@ jobs:
         Write-Host "Password set: $(if ($env:O365_PASSWORD) { 'YES' } else { 'NO' })"
         
         npx playwright install chromium
-        npx playwright test tests/auth-test-only.spec.ts --reporter=line
+        npx playwright test tests/mda/auth-test-only.spec.ts --reporter=line
 
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Auth Screenshots'
