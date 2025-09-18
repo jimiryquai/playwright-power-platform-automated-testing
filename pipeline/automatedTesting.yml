@@ -27,7 +27,7 @@ jobs:
       command: 'ci'
 
   - task: PowerShell@2
-    displayName: 'Run Auth Test Only'
+    displayName: 'Run MDA Tests'
     env:
       MDA_URL: '$(MDA_URL)'
       APP_NAME: '$(APP_NAME)'
@@ -36,20 +36,21 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        Write-Host "=== Environment Check ==="
-        Write-Host "MDA_URL: $env:MDA_URL"
-        Write-Host "O365_USERNAME: $env:O365_USERNAME"
-        Write-Host "Password set: $(if ($env:O365_PASSWORD) { 'YES' } else { 'NO' })"
-        
         npx playwright install chromium
-        npx playwright test tests/mda/auth-test-only.spec.ts --reporter=line
+        npm run test:mda
+
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/results.xml'
 
   - task: PublishBuildArtifacts@1
-    displayName: 'Publish Auth Screenshots'
-    condition: always()
+    displayName: 'Publish Test Reports'
+    condition: succeededOrFailed()
     inputs:
-      PathtoPublish: '$(System.DefaultWorkingDirectory)'
-      ArtifactName: 'auth-screenshots'
+      PathtoPublish: '$(System.DefaultWorkingDirectory)/playwright-report'
+      ArtifactName: 'mda-test-results'
 
   # - task: mightoria-playwrightForPowerPlatformAdvanced@1
   #   inputs:
