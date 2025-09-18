@@ -21,8 +21,12 @@ test.describe('Grid Component - Basic Tests', () => {
         sidebar = new Sidebar(page);
 
         validateConfig();
-        await page.goto(testConfig.appUrl);
+        await page.goto(testConfig.mdaUrl);
         await xrmHelper.waitForXrmReady();
+
+        // ADD JUST THIS ONE LINE:
+        await page.screenshot({ path: 'debug-before-cases-click.png', fullPage: true });
+
         await sidebar.navigateToCases();
         await xrmHelper.waitForXrmReady();
     });

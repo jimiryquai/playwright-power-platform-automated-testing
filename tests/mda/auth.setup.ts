@@ -9,9 +9,8 @@ setup('authenticate', async ({ page }) => {
 
   validateConfig();
 
-  // Create auth directory if it doesn't exist
   if (!fs.existsSync('auth')) {
-    fs.mkdirSync('auth');
+    fs.mkdirSync('auth', { recursive: true });
   }
 
   const loginPage = new LoginPage(page);
@@ -19,8 +18,10 @@ setup('authenticate', async ({ page }) => {
   await page.goto(testConfig.mdaUrl);
   await loginPage.login(testConfig.username, testConfig.password);
 
-  // Minimal verification - just check auth worked
-  await expect(page).toHaveURL(/dynamics\.com/);
+  // Wait for page to be fully loaded after login redirect
+  await page.waitForLoadState('load');
+
+  await expect(page).toHaveURL(/dynamics\.com/, { timeout: 10000 });
 
   // Save auth state
   await page.context().storageState({ path: authFile });

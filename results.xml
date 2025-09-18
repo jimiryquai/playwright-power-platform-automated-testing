@@ -1,6 +1,6 @@
-<testsuites id="" name="" tests="8" failures="1" skipped="0" errors="0" time="47.138871">
-<testsuite name="mda\auth.setup.ts" timestamp="2025-09-18T15:10:54.964Z" hostname="mda-setup" tests="1" failures="0" skipped="0" time="8.202" errors="0">
-<testcase name="authenticate" classname="mda\auth.setup.ts" time="8.202">
+<testsuites id="" name="" tests="8" failures="0" skipped="0" errors="0" time="33.536152">
+<testsuite name="mda\auth.setup.ts" timestamp="2025-09-18T16:01:26.312Z" hostname="mda-setup" tests="1" failures="0" skipped="0" time="7.893" errors="0">
+<testcase name="authenticate" classname="mda\auth.setup.ts" time="7.893">
 <system-out>
 <![CDATA[
 [[ATTACHMENT|test-results\mda-auth.setup.ts-authenticate-mda-setup\test-finished-1.png]]
@@ -12,8 +12,8 @@
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="mda\mda.spec.ts" timestamp="2025-09-18T15:10:54.964Z" hostname="mda-tests" tests="1" failures="0" skipped="0" time="8.967" errors="0">
-<testcase name="MDA Tests › basic mda test" classname="mda\mda.spec.ts" time="8.967">
+<testsuite name="mda\mda.spec.ts" timestamp="2025-09-18T16:01:26.312Z" hostname="mda-tests" tests="1" failures="0" skipped="0" time="6.893" errors="0">
+<testcase name="MDA Tests › basic mda test" classname="mda\mda.spec.ts" time="6.893">
 <system-out>
 <![CDATA[Xrm status: {
   xrmExists: [33mtrue[39m,
@@ -31,8 +31,8 @@
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="mda\open-interested-parties.spec.ts" timestamp="2025-09-18T15:10:54.964Z" hostname="mda-tests" tests="6" failures="1" skipped="0" time="161.098" errors="0">
-<testcase name="Grid Component - Basic Tests › Should get grid row count - PROVEN WORKING" classname="mda\open-interested-parties.spec.ts" time="24.503">
+<testsuite name="mda\open-interested-parties.spec.ts" timestamp="2025-09-18T16:01:26.312Z" hostname="mda-tests" tests="6" failures="0" skipped="0" time="111.698" errors="0">
+<testcase name="Grid Component - Basic Tests › Should get grid row count - PROVEN WORKING" classname="mda\open-interested-parties.spec.ts" time="16.183">
 <system-out>
 <![CDATA[✅ Grid has 9 rows
 
@@ -44,7 +44,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Grid Component - Basic Tests › Should get column information - PROVEN WORKING" classname="mda\open-interested-parties.spec.ts" time="24.976">
+<testcase name="Grid Component - Basic Tests › Should get column information - PROVEN WORKING" classname="mda\open-interested-parties.spec.ts" time="19.691">
 <system-out>
 <![CDATA[✅ Available columns: [
   { index: [33m1[39m, text: [32m'Toggle selection of all rows'[39m },
@@ -66,7 +66,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Grid Component - Basic Tests › Should get cell text from first record - PROVEN WORKING" classname="mda\open-interested-parties.spec.ts" time="26.72">
+<testcase name="Grid Component - Basic Tests › Should get cell text from first record - PROVEN WORKING" classname="mda\open-interested-parties.spec.ts" time="19.533">
 <system-out>
 <![CDATA[✅ Record name: Steve Test Case 2Steve Test Case 2
 
@@ -78,7 +78,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Grid Component - Basic Tests › Should open first record - YOUR ORIGINAL WORKING TEST" classname="mda\open-interested-parties.spec.ts" time="22.816">
+<testcase name="Grid Component - Basic Tests › Should open first record - YOUR ORIGINAL WORKING TEST" classname="mda\open-interested-parties.spec.ts" time="18.278">
 <system-out>
 <![CDATA[✅ Successfully opened record
 
@@ -90,45 +90,19 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Grid Component - Basic Tests › Should double-click main field to open record" classname="mda\open-interested-parties.spec.ts" time="31.872">
-<failure message="open-interested-parties.spec.ts:77:9 Should double-click main field to open record" type="FAILURE">
-<![CDATA[  [mda-tests] › mda\open-interested-parties.spec.ts:77:9 › Grid Component - Basic Tests › Should double-click main field to open record 
-
-    Test timeout of 30000ms exceeded.
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ..\test-results\open-interested-parties-Gr-48787-k-main-field-to-open-record-mda-tests\test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ..\test-results\open-interested-parties-Gr-48787-k-main-field-to-open-record-mda-tests\video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\open-interested-parties-Gr-48787-k-main-field-to-open-record-mda-tests\error-context.md
-
-    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
-    ..\test-results\open-interested-parties-Gr-48787-k-main-field-to-open-record-mda-tests\trace.zip
-    Usage:
-
-        npx playwright show-trace ..\test-results\open-interested-parties-Gr-48787-k-main-field-to-open-record-mda-tests\trace.zip
-
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-]]>
-</failure>
+<testcase name="Grid Component - Basic Tests › Should double-click main field to open record" classname="mda\open-interested-parties.spec.ts" time="19.206">
 <system-out>
 <![CDATA[✅ doubleClickCell(0, 2) successfully opened record
 
-[[ATTACHMENT|test-results\open-interested-parties-Gr-48787-k-main-field-to-open-record-mda-tests\test-failed-1.png]]
+[[ATTACHMENT|test-results\open-interested-parties-Gr-48787-k-main-field-to-open-record-mda-tests\test-finished-1.png]]
 
 [[ATTACHMENT|test-results\open-interested-parties-Gr-48787-k-main-field-to-open-record-mda-tests\video.webm]]
-
-[[ATTACHMENT|test-results\open-interested-parties-Gr-48787-k-main-field-to-open-record-mda-tests\error-context.md]]
 
 [[ATTACHMENT|test-results\open-interested-parties-Gr-48787-k-main-field-to-open-record-mda-tests\trace.zip]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Grid Component - Basic Tests › Should click Case Category lookup link to open related record" classname="mda\open-interested-parties.spec.ts" time="30.211">
+<testcase name="Grid Component - Basic Tests › Should click Case Category lookup link to open related record" classname="mda\open-interested-parties.spec.ts" time="18.807">
 <system-out>
 <![CDATA[✅ Successfully clicked Case Category lookup link and opened related record
 

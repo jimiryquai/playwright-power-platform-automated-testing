@@ -59,11 +59,17 @@ export class Grid {
    */
   async waitForGridReady(): Promise<void> {
     await this.xrmHelper.waitForXrmReady();
+
+    // Wait for loading spinner to disappear
+    try {
+      await this.page.waitForSelector('#progressIndicatorContainer', { state: 'hidden', timeout: 30000 });
+    } catch {
+      // Spinner might not be present, continue
+    }
+
     await this.page.waitForSelector('div.ag-root', { state: 'visible', timeout: 15000 });
     await this.page.waitForSelector('div[role="row"][row-index="0"]', { state: 'visible', timeout: 15000 });
-    await this.page.waitForTimeout(1000);
   }
-
   /**
    * Gets the text content of a cell by column index
    */
@@ -113,11 +119,11 @@ export class Grid {
     return columns;
   }
 
-   /**
-   * Double-clicks on any element within a specific row and column
-   * @param recordNumber Zero-based row index
-   * @param columnIndex Column to double-click
-   */
+  /**
+  * Double-clicks on any element within a specific row and column
+  * @param recordNumber Zero-based row index
+  * @param columnIndex Column to double-click
+  */
   async doubleClickCell(recordNumber: number, columnIndex: number): Promise<void> {
     await this.xrmHelper.waitForXrmReady();
     await this.waitForGridReady();
@@ -132,11 +138,11 @@ export class Grid {
     await cellElement.dblclick();
   }
 
-   /**
-   * Clicks a lookup link in a specific cell to open the related record
-   * @param recordNumber Zero-based row index
-   * @param columnIndex Column containing the lookup field
-   */
+  /**
+  * Clicks a lookup link in a specific cell to open the related record
+  * @param recordNumber Zero-based row index
+  * @param columnIndex Column containing the lookup field
+  */
   async clickLookupLink(recordNumber: number, columnIndex: number): Promise<void> {
     const lookupSelector = `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="${columnIndex}"] a.ms-Link`;
 

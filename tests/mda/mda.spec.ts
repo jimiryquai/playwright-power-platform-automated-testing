@@ -11,7 +11,7 @@ test.describe('MDA Tests', () => {
     await page.setViewportSize({ width: 2560, height: 1440 });
     xrmHelper = new XrmHelper(page);
     
-    await page.goto(testConfig.appUrl);
+    await page.goto(testConfig.mdaUrl);
 
     // Wait for Xrm to be ready
     await xrmHelper.waitForXrmReady();
