@@ -21,18 +21,17 @@ test.describe('Grid Component - Basic Tests', () => {
         await page.goto(testConfig.mdaUrl);
         await xrmHelper.waitForXrmReady();
 
-        // Add debugging for pipeline
-        console.log('Checking sidebar state...');
-        await page.screenshot({ path: 'debug-sidebar.png', fullPage: true });
+        // Debug what page we're actually on
+        console.log('Current URL:', page.url());
+        console.log('Page title:', await page.title());
 
-        // List all elements with aria-label to see what's actually there
-        const ariaElements = await page.locator('[aria-label]').all();
-        console.log(`Found ${ariaElements.length} elements with aria-label:`);
-        for (const element of ariaElements) {
-            const label = await element.getAttribute('aria-label');
-            const isVisible = await element.isVisible();
-            console.log(`  "${label}": visible=${isVisible}`);
-        }
+        // Check if we're on the right page by looking for any sidebar
+        const sidebarContainer = await page.locator('[role="tree"], [role="navigation"], .sidebar').count();
+        console.log('Sidebar containers found:', sidebarContainer);
+
+        // Look for any list items that might be sidebar items
+        const listItems = await page.locator('li').count();
+        console.log('Total list items found:', listItems);
 
         // Check if Cases link is visible before clicking
         if (!(await sidebar.isEntityVisible('Cases'))) {
