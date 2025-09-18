@@ -1,12 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { XrmHelper } from './utils/XrmHelper';
-import { testConfig, validateConfig } from '../config/TestConfig';
+import { testConfig, validateConfig } from './TestConfig';
 import path from 'path';
 
 test.describe('MDA Tests', () => {
   let xrmHelper: XrmHelper;
 
   test.beforeEach(async ({ page }) => {
+    validateConfig();
     await page.setViewportSize({ width: 2560, height: 1440 });
     xrmHelper = new XrmHelper(page);
     
