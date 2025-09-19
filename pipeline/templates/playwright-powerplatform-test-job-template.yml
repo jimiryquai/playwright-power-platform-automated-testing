@@ -1,0 +1,60 @@
+# templates/powerplatform-test-template.yml
+parameters:
+- name: jobName
+  type: string
+- name: displayName
+  type: string
+- name: testLocation
+  type: string
+- name: browser
+  type: string
+  default: 'chromium'
+- name: trace
+  type: string
+  default: 'on'
+- name: outputLocation
+  type: string
+  default: '$(Build.ArtifactStagingDirectory)/test-output'
+- name: appUrl
+  type: string
+- name: appName
+  type: string
+- name: o365Username
+  type: string
+  default: '$(O365UserName)'
+- name: o365Password
+  type: string
+  default: '$(O365Password)'
+
+jobs:
+- job: ${{ parameters.jobName }}
+  displayName: ${{ parameters.displayName }}
+  steps:
+  - checkout: self
+
+  - task: mightoria-playwrightForPowerPlatform@1
+    displayName: ${{ parameters.displayName }}
+    continueOnError: true
+    inputs:
+      testLocation: ${{ parameters.testLocation }}
+      browser: ${{ parameters.browser }}
+      trace: ${{ parameters.trace }}
+      outputLocation: ${{ parameters.outputLocation }}
+      appUrl: ${{ parameters.appUrl }}
+      appName: ${{ parameters.appName }}
+      o365Username: ${{ parameters.o365Username }}
+      o365Password: ${{ parameters.o365Password }}
+
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/results.xml'
+      testRunTitle: '${{ parameters.displayName }}'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Test Reports'
+    condition: succeededOrFailed()
+    inputs:
+      PathtoPublish: '$(System.DefaultWorkingDirectory)/playwright-report'
+      ArtifactName: '${{ parameters.jobName }}-results'
