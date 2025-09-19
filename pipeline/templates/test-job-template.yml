@@ -40,42 +40,42 @@ jobs:
             npx playwright install chromium
             ${{ parameters.testScript }}
 
-        # Archive trace files properly
-  - task: ArchiveFiles@2
-    displayName: "Archive Trace Files"
-    condition: succeededOrFailed()
-    inputs:
-      rootFolderOrFile: "$(System.DefaultWorkingDirectory)/test-results/**/*.trace"
-      includeRootFolder: false
-      archiveType: "zip"
-      archiveFile: "$(Build.ArtifactStagingDirectory)/traces.zip"
-      replaceExistingArchive: true
+      # Archive trace files properly
+      - task: ArchiveFiles@2
+        displayName: "Archive Trace Files"
+        condition: succeededOrFailed()
+        inputs:
+          rootFolderOrFile: "$(System.DefaultWorkingDirectory)/test-results/**/*.trace"
+          includeRootFolder: false
+          archiveType: "zip"
+          archiveFile: "$(Build.ArtifactStagingDirectory)/traces.zip"
+          replaceExistingArchive: true
 
-  - task: PublishTestResults@2
-    condition: succeededOrFailed()
-    inputs:
-      testResultsFormat: "JUnit"
-      testResultsFiles: "**/results.xml"
-      testRunTitle: "${{ parameters.displayName }}"
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFormat: "JUnit"
+          testResultsFiles: "**/results.xml"
+          testRunTitle: "${{ parameters.displayName }}"
 
-  - task: PublishBuildArtifacts@1
-    displayName: "Publish Test Reports"
-    condition: succeededOrFailed()
-    inputs:
-      PathtoPublish: "$(System.DefaultWorkingDirectory)/playwright-report"
-      ArtifactName: "${{ parameters.jobName }}-results"
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish Test Reports"
+        condition: succeededOrFailed()
+        inputs:
+          PathtoPublish: "$(System.DefaultWorkingDirectory)/playwright-report"
+          ArtifactName: "${{ parameters.jobName }}-results"
 
-  - task: PublishBuildArtifacts@1
-    displayName: "Publish Traces"
-    condition: succeededOrFailed()
-    inputs:
-      PathtoPublish: "$(Build.ArtifactStagingDirectory)/traces.zip"
-      ArtifactName: "${{ parameters.jobName }}-traces"
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish Traces"
+        condition: succeededOrFailed()
+        inputs:
+          PathtoPublish: "$(Build.ArtifactStagingDirectory)/traces.zip"
+          ArtifactName: "${{ parameters.jobName }}-traces"
 
-  # Still publish test-results for videos and screenshots
-  - task: PublishBuildArtifacts@1
-    displayName: "Publish Test Videos/Screenshots"
-    condition: succeededOrFailed()
-    inputs:
-      PathtoPublish: "$(System.DefaultWorkingDirectory)/test-results"
-      ArtifactName: "${{ parameters.jobName }}-test-artifacts"
+      # Still publish test-results for videos and screenshots
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish Test Videos/Screenshots"
+        condition: succeededOrFailed()
+        inputs:
+          PathtoPublish: "$(System.DefaultWorkingDirectory)/test-results"
+          ArtifactName: "${{ parameters.jobName }}-test-artifacts"
