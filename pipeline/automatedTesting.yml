@@ -34,7 +34,7 @@ jobs:
     parameters:
       jobName: 'MDA_Tests'
       displayName: 'Run MDA Tests'
-      testScript: 'npm run test:mda'
+      testScript: 'npm run setup:mda'
       environmentVariables:
         MDA_URL: '$(MDA_URL)'
         APP_NAME: '$(APP_NAME)'
