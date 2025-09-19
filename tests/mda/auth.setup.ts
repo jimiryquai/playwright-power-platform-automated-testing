@@ -12,6 +12,12 @@ setup('authenticate', async ({ page }) => {
     fs.mkdirSync('auth', { recursive: true });
   }
 
+  // Set user agent to appear like a regular desktop browser
+  await page.setExtraHTTPHeaders({
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+  });
+
+
   // Enable browser console logging
   page.on('console', msg => console.log(`Browser: ${msg.text()}`));
   page.on('pageerror', err => console.log(`Page error: ${err.message}`));
@@ -37,9 +43,13 @@ setup('authenticate', async ({ page }) => {
       console.log(`After login: ${page.url()}`);
 
       await page.waitForLoadState('load');
+
+         // Add longer wait for session to stabilize
+      await page.waitForTimeout(5000);
+      
       console.log(`After waitForLoadState: ${page.url()}`);
 
-        // Check current state
+      // Check current state
       const currentUrl = page.url();
       const pageTitle = await page.title();
       console.log(`Final URL: ${currentUrl}`);
@@ -53,7 +63,7 @@ setup('authenticate', async ({ page }) => {
 
       await expect(page).toHaveURL(/dynamics\.com/, { timeout: 10000 });
 
-        // Wait for Power Platform to be ready
+      // Wait for Power Platform to be ready
       try {
         await page.waitForFunction(
           () => document.querySelectorAll('[data-id*="sitemap"], [role="tree"], .pa-').length > 0,
