@@ -9,19 +9,58 @@ trigger:
       - README.md
       - pipelines/*
 
+parameters:
+  - name: runMDA
+    displayName: "Run MDA Tests"
+    type: boolean
+    default: true
+
+  - name: runPortal
+    displayName: "Run Portal Tests"
+    type: boolean
+    default: false
+
+  - name: runPublicFile
+    displayName: "Run Public File Tests"
+    type: boolean
+    default: false
+
 pool:
   vmImage: windows-latest
 
 jobs:
-  - template: templates/playwright-powerplatform-test-job-template.yml
-    parameters:
-      jobName: 'MDA_Tests'
-      displayName: 'Run MDA Tests'
-      testLocation: '$(System.DefaultWorkingDirectory)/tests/mda'
-      browser: 'chromium'
-      trace: 'on'
-      outputLocation: '$(Build.ArtifactStagingDirectory)/mda-test-output'
-      appUrl: '$(MDA_URL)'
-      appName: '$(APP_NAME)'
-      o365Username: '$(O365Username)'
-      o365Password: '$(O365Password)'
+  # MDA Tests
+  - ${{ if eq(parameters.runMDA, true) }}:
+      - template: templates/test-job-template.yml
+        parameters:
+          jobName: "MDA_Tests"
+          displayName: "Run MDA Tests"
+          testScript: "npm run setup:mda"
+          environmentVariables:
+            MDA_URL: "$(MDA_URL)"
+            APP_NAME: "$(APP_NAME)"
+            O365_USERNAME: "$(O365Username)"
+            O365_PASSWORD: "$(O365Password)"
+
+  # Portal Tests
+  - ${{ if eq(parameters.runPortal, true) }}:
+      - template: templates/test-job-template.yml
+        parameters:
+          jobName: "Portal_Tests"
+          displayName: "Run Portal Tests"
+          testScript: "npm run test:portal"
+          environmentVariables:
+            PORTAL_URL: "$(PORTAL_URL)"
+            B2C_USERNAME: "$(B2C_USERNAME)"
+            B2C_PASSWORD: "$(B2C_PASSWORD)"
+
+  # Public File Tests
+  - ${{ if eq(parameters.runPublicFile, true) }}:
+      - template: templates/test-job-template.yml
+        parameters:
+          jobName: "PublicFile_Tests"
+          displayName: "Run Public File Tests"
+          testScript: "npm run test:public-file"
+          environmentVariables:
+            AZURE_APP_URL: "$(AZURE_APP_URL)"
+            AZURE_PASSWORD: "$(AZURE_PASSWORD)"
