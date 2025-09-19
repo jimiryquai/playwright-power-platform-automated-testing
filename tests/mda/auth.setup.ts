@@ -12,6 +12,10 @@ setup('authenticate', async ({ page }) => {
     fs.mkdirSync('auth', { recursive: true });
   }
 
+  // Enable browser console logging
+  page.on('console', msg => console.log(`Browser: ${msg.text()}`));
+  page.on('pageerror', err => console.log(`Page error: ${err.message}`));
+
   const loginPage = new LoginPage(page);
   let authSuccess = false;
   let attempts = 0;
@@ -22,26 +26,59 @@ setup('authenticate', async ({ page }) => {
       attempts++;
       console.log(`Authentication attempt ${attempts}/${maxAttempts}`);
 
+      // Screenshot before starting
+      await page.screenshot({ path: `debug-auth-start-${attempts}.png`, fullPage: true });
+
       await page.goto(testConfig.mdaUrl, { waitUntil: 'load', timeout: 60000 });
+      console.log(`After goto: ${page.url()}`);
+      console.log(`Page title after goto: ${await page.title()}`);
+
       await loginPage.login(testConfig.username, testConfig.password);
+      console.log(`After login: ${page.url()}`);
+
       await page.waitForLoadState('load');
+      console.log(`After waitForLoadState: ${page.url()}`);
+
+        // Check current state
+      const currentUrl = page.url();
+      const pageTitle = await page.title();
+      console.log(`Final URL: ${currentUrl}`);
+      console.log(`Final title: ${pageTitle}`);
 
       // Check if we landed on an error page
-      const currentUrl = page.url();
+      //const currentUrl = page.url();
       if (currentUrl.includes('error/errorhandler.aspx')) {
         throw new Error(`Authentication failed - landed on error page: ${currentUrl}`);
       }
 
       await expect(page).toHaveURL(/dynamics\.com/, { timeout: 10000 });
+
+        // Wait for Power Platform to be ready
+      try {
+        await page.waitForFunction(
+          () => document.querySelectorAll('[data-id*="sitemap"], [role="tree"], .pa-').length > 0,
+          { timeout: 30000 }
+        );
+        console.log('Power Platform elements detected');
+      } catch (e) {
+        console.log('No Power Platform elements detected, but continuing...');
+      }
+
       authSuccess = true;
       console.log('Authentication successful');
 
     } catch (error) {
+      await page.screenshot({ path: `debug-auth-failed-${attempts}.png`, fullPage: true });
+
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.log(`Authentication attempt ${attempts} failed:`, errorMessage);
+      console.log(`Authentication attempt ${attempts} failed: ${errorMessage}`);
+      console.log(`URL on failure: ${page.url()}`);
+      console.log(`Title on failure: ${await page.title()}`);
+
       if (attempts === maxAttempts) {
         throw error;
       }
+      console.log('Reloading page for retry...');
       await page.reload({ waitUntil: 'load' });
     }
   }
