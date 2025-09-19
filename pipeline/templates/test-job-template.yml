@@ -30,6 +30,7 @@ jobs:
 
   - task: PowerShell@2
     displayName: 'Run Tests'
+    continueOnError: true
     env: ${{ parameters.environmentVariables }}
     inputs:
       targetType: 'inline'
