@@ -41,27 +41,19 @@ test('4163', async ({ page }) => {
         - /url: ""
       - text: will help us to improve it.
     `);
-  await page.getByText('This is a new service – your').click();
-  await page.getByRole('link', { name: 'TRA Investigations' }).click();
-  await page.getByLabel('Menu').getByRole('link', { name: 'Home' }).click();
-  await page.getByRole('link', { name: 'TRA Investigations' }).click();
-  await page.getByRole('link', { name: 'Sign in', exact: true }).click();
-  await page.getByRole('heading', { name: 'Sign in' }).click();
-  await page.getByRole('link', { name: 'TRA Investigations' }).click();
-  await page.getByLabel('Menu').getByRole('link', { name: 'Home' }).click();
-  await expect(page.getByRole('contentinfo')).toMatchAriaSnapshot(`
+    await expect(page.getByRole('contentinfo')).toMatchAriaSnapshot(`
     - contentinfo:
       - heading "Support links" [level=2]
       - list:
         - listitem:
           - link "Cookies":
-            - /url: https://publicfile-test.tangoromeoalpha.co.uk/cookies/
+            - /url: ${testConfig.azureAppUrl}cookies/
         - listitem:
           - link "Terms and privacy":
-            - /url: https://publicfile-test.tangoromeoalpha.co.uk/terms-and-privacy/
+            - /url: ${testConfig.azureAppUrl}terms-and-privacy/
         - listitem:
           - link "Accessibility statement":
-            - /url: https://publicfile-test.tangoromeoalpha.co.uk/accessibility/
+            - /url: ${testConfig.azureAppUrl}accessibility/
       - text: All content is available under the
       - link "Open Government Licence v3.0":
         - /url: https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
@@ -69,4 +61,13 @@ test('4163', async ({ page }) => {
       - link "© Crown copyright":
         - /url: https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/
     `);
+  await expect(page.getByText('This is a new service – your')).toBeVisible()
+
+await expect(page.getByRole('link', { name: 'Sign in', exact: true }))
+  .toHaveAttribute('href', testConfig.portalUrl);
+await expect(page.getByRole('link', { name: 'TRA Investigations' }))
+  .toHaveAttribute('href', testConfig.azureAppUrl);
+
+await expect(  page.getByLabel('Menu').getByRole('link', { name: 'Home' }))
+  .toHaveAttribute('href', testConfig.azureAppUrl);
 });
