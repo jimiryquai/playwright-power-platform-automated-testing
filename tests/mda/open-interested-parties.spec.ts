@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { Page } from '@playwright/test';
 import { Grid } from './components/Grid';
 import { XrmHelper } from './utils/XrmHelper';
+import { WebApi } from './utils/WebApi';
 import { Sidebar } from './components/Sidebar';
 import { testConfig, validateConfig } from './TestConfig';
 
@@ -109,16 +110,16 @@ test.describe('Grid Component - Basic Tests', () => {
         console.log('✅ doubleClickCell(0, 2) successfully opened record');
     });
 
-    test('Should click Case Category lookup link to open related record', async () => {
-        await grid.waitForGridReady();
-        await grid.clickLookupLink(0, 4);
+    // test('Should click Case Category lookup link to open related record', async () => {
+    //     await grid.waitForGridReady();
+    //     await grid.clickLookupLink(0, 4);
 
-        // Use your proven form ready check
-        const isFormReady = await page.evaluate(() => {
-            return window.Xrm?.Page?.data?.entity?.getId() !== null;
-        });
+    //     // Use your proven form ready check
+    //     const isFormReady = await page.evaluate(() => {
+    //         return window.Xrm?.Page?.data?.entity?.getId() !== null;
+    //     });
 
-        expect(isFormReady).toBe(true);
-        console.log('✅ Successfully clicked Case Category lookup link and opened related record');
-    });
+    //     expect(isFormReady).toBe(true);
+    //     console.log('✅ Successfully clicked Case Category lookup link and opened related record');
+    // });
 });

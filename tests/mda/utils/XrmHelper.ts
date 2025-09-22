@@ -8,7 +8,7 @@ declare global {
 }
 
 /**
- * XrmHelper - Utility class providing core D365/Xrm waiting functionality
+ * XrmHelper - Minimal core utility for D365/Xrm interactions
  */
 export class XrmHelper {
   readonly page: Page;
@@ -18,7 +18,7 @@ export class XrmHelper {
   }
 
   /**
-   * Wait for Xrm to be available (simple UCI assumption)
+   * Wait for Xrm to be available in the page context
    */
   async waitForXrmReady(): Promise<void> {
     await this.page.waitForFunction(
