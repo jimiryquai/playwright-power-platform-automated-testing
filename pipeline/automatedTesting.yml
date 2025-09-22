@@ -64,3 +64,4 @@ jobs:
           environmentVariables:
             AZURE_APP_URL: "$(AZURE_APP_URL)"
             AZURE_PASSWORD: "$(AZURE_PASSWORD)"
+            PORTAL_URL: "$(PORTAL_URL)"
