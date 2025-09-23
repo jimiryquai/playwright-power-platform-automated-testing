@@ -44,9 +44,65 @@ test.describe('Grid Component - Basic Tests', () => {
             throw new Error('Cases link not visible in sidebar');
         }
 
-        await sidebar.navigateToCases();
+        //await sidebar.navigateToCases();
         await xrmHelper.waitForXrmReady();
     });
+
+    // test('Debug - Create case category to see error', async () => {
+    //     const webApi = new WebApi(xrmHelper);
+    //     const timestamp = Date.now();
+
+    //     console.log('Attempting to create case category...');
+
+    //     // Try to create and catch the actual error
+    //     try {
+    //         const result: any = await xrmHelper.page.evaluate(
+    //             ({ entityName, recordData }) => {
+    //                 // Call the API and return whatever it gives us
+    //                 return window.Xrm.WebApi.createRecord(entityName, recordData).then(
+    //                     (success: any) => ({
+    //                         success: true,
+    //                         data: success
+    //                     }),
+    //                     (error: any) => ({
+    //                         success: false,
+    //                         error: {
+    //                             message: error.message || JSON.stringify(error),
+    //                             code: error.code,
+    //                             details: JSON.stringify(error)
+    //                         }
+    //                     })
+    //                 );
+    //             },
+    //             {
+    //                 entityName: 'cg_case_category',
+    //                 recordData: {
+    //                     cg_case_category: `Test Category ${timestamp}`,
+    //                     cg_showonportal: 121480000
+    //                 }
+    //             }
+    //         );
+
+    //         console.log('Result:', JSON.stringify(result, null, 2));
+
+    //         if (!result.success) {
+    //             console.error('API Error:', result.error);
+    //             throw new Error(`Failed to create category: ${result.error.message}`);
+    //         }
+
+    //         console.log('✅ Created successfully:', result.data);
+
+    //         // Clean up if successful
+    //         if (result.success && result.data.id) {
+    //             await webApi.deleteRecord('cg_case_category', result.data.id);
+    //             console.log('Cleaned up test record');
+    //         }
+
+    //     } catch (error) {
+    //         console.error('Test error:', error);
+    //         throw error;
+    //     }
+    // });
 
     test('Should get grid row count - PROVEN WORKING', async () => {
         await grid.waitForGridReady();
