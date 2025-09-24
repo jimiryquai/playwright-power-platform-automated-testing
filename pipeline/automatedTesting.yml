@@ -23,7 +23,7 @@ parameters:
   - name: runPublicFile
     displayName: "Run Public File Tests"
     type: boolean
-    default: false
+    default: true
 
 pool:
   vmImage: windows-latest

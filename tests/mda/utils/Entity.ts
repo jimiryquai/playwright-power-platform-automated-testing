@@ -1,32 +1,28 @@
-// utils/Entity.ts
 import { XrmHelper } from './XrmHelper';
 
-export class Entity extends XrmHelper {
-
-  /**
- * Wait for the form to be fully loaded and ready for interaction
+/**
+ * Entity - Handles record/entity operations in D365
  */
-  async waitForFormReady(timeout: number = 30000): Promise<void> {
-    await this.waitForXrmReady();
+export class Entity {
+  constructor(private xrmHelper: XrmHelper) {}
 
-    await this.page.waitForFunction(() => {
-      return window.Xrm?.Page?.data?.entity;
-    }, { timeout });
-  }
-  
   /**
-   * Get the current record ID, waiting for it to be available
+   * Get the current record's ID
    */
   async getRecordId(): Promise<string> {
-    await this.waitForXrmReady();
-
-    await this.page.waitForFunction(() => {
-      const id = window.Xrm.Page.data.entity.getId();
-      return id && id !== "" && id !== null;
-    }, { timeout: 10000 });
-
-    return await this.page.evaluate(() => {
+    await this.xrmHelper.waitForXrmReady();
+    return this.xrmHelper.page.evaluate(() => {
       return window.Xrm.Page.data.entity.getId();
+    });
+  }
+
+  /**
+   * Get the logical name of the current entity
+   */
+  async getEntityName(): Promise<string> {
+    await this.xrmHelper.waitForXrmReady();
+    return this.xrmHelper.page.evaluate(() => {
+      return window.Xrm.Page.data.entity.getEntityName();
     });
   }
 
@@ -34,19 +30,60 @@ export class Entity extends XrmHelper {
    * Save the current record
    */
   async save(): Promise<void> {
-    await this.waitForXrmReady();
-    await this.page.evaluate(() => {
+    await this.xrmHelper.waitForXrmReady();
+    await this.xrmHelper.page.evaluate(() => {
       return window.Xrm.Page.data.entity.save();
     });
   }
 
   /**
-   * Check if record has unsaved changes
+   * Check if the record has unsaved changes
    */
   async isDirty(): Promise<boolean> {
-    await this.waitForXrmReady();
-    return await this.page.evaluate(() => {
+    await this.xrmHelper.waitForXrmReady();
+    return this.xrmHelper.page.evaluate(() => {
       return window.Xrm.Page.data.entity.getIsDirty();
     });
+  }
+
+  /**
+   * Get the primary attribute value (usually the name)
+   */
+  async getPrimaryAttributeValue(): Promise<string> {
+    await this.xrmHelper.waitForXrmReady();
+    return this.xrmHelper.page.evaluate(() => {
+      return window.Xrm.Page.data.entity.getPrimaryAttributeValue();
+    });
+  }
+
+  /**
+   * Check if the entity data is valid
+   */
+  async isValid(): Promise<boolean> {
+    await this.xrmHelper.waitForXrmReady();
+    return this.xrmHelper.page.evaluate(() => {
+      return window.Xrm.Page.data.entity.isValid();
+    });
+  }
+
+  /**
+   * Get the form type
+   * @returns 0=Undefined, 1=Create, 2=Update, 3=Read Only, 4=Disabled, 6=Bulk Edit
+   */
+  async getFormType(): Promise<number> {
+    await this.xrmHelper.waitForXrmReady();
+    return this.xrmHelper.page.evaluate(() => {
+      return window.Xrm.Page.ui.getFormType();
+    });
+  }
+
+  /**
+   * Refresh the record data from the server
+   */
+  async refresh(save: boolean = false): Promise<void> {
+    await this.xrmHelper.waitForXrmReady();
+    await this.xrmHelper.page.evaluate((shouldSave) => {
+      return window.Xrm.Page.data.refresh(shouldSave);
+    }, save);
   }
 }
