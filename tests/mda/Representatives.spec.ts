@@ -46,3 +46,19 @@ test('4141', async ({ page }) => {
   await page.getByText('ActiveStatus ReasonDP#').click();
   await expect(page.getByText('Role')).toBeVisible;
 });
+
+test('4143', async ({ page }) => {
+await page.goto(testConfig.mdaUrl);
+  await page.getByText('Representatives').click();
+  await expect(page.getByTestId('cg_name')).toMatchAriaSnapshot(`- text: Representative Name`);
+  await expect(page.getByTestId('cg_role_')).toMatchAriaSnapshot(`- text: Role`);
+  await expect(page.getByTestId('cg_interested_parties_id')).toMatchAriaSnapshot(`- text: Interested Party`);
+  await expect(page.locator('h1')).toMatchAriaSnapshot(`- button "Active Representatives": Active Representatives Open popup to change view.`);
+  await page.getByRole('button', { name: 'Active Representatives' }).click();
+  await page.getByRole('menuitemradio', { name: 'Inactive Representatives' }).click();
+  await page.getByRole('button', { name: 'Role' }).click();
+  await page.getByRole('button', { name: 'Role' }).click();
+  await expect(page.getByTestId('cg_interested_parties_id')).toMatchAriaSnapshot(`- text: Interested Party`);
+  await expect(page.getByTestId('cg_role_')).toMatchAriaSnapshot(`- text: Role`);
+  await expect(page.getByTestId('cg_name')).toMatchAriaSnapshot(`- text: Representative Name`);
+});
