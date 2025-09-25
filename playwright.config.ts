@@ -1,6 +1,10 @@
 // playwright.config.ts
 import { defineConfig, devices } from '@playwright/test';
 import type { AzureReporterOptions } from '@alex_neo/playwright-azure-reporter';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
 
 export default defineConfig({
   testDir: './tests',
@@ -11,35 +15,31 @@ export default defineConfig({
   reporter: [
     ['junit', { outputFile: 'results.xml' }],
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
-    // [
-    //   '@alex_neo/playwright-azure-reporter',
-    //   {
-    //     orgUrl: process.env.AZURE_DEVOPS_ORG_URL || 'https://dev.azure.com/your-organization',
-    //     token: process.env.AZURE_DEVOPS_TOKEN || '',
-    //     planId: parseInt(process.env.AZURE_TEST_PLAN_ID || '0'),
-    //     projectName: process.env.AZURE_PROJECT_NAME || 'Your Project Name',
-    //     environment: 'QA',
-    //     logging: true,
-    //     testRunTitle: 'Playwright Automated Test Run',
-    //     publishTestResultsMode: 'testRun',
-    //     uploadAttachments: true,
-    //     attachmentsType: ['screenshot', 'video', 'trace'],
-    //     testRunConfig: {
-    //       owner: { 
-    //         displayName: process.env.AZURE_TEST_OWNER || 'Automated Test Runner'
-    //       },
-    //       comment: 'Automated Playwright Test Execution',
-    //       configurationIds: [1], // Default configuration ID - you can get actual IDs from Azure DevOps
-    //     },
-    //     // Enable test case summary for unmatched test cases
-    //     testCaseSummary: {
-    //       enabled: true,
-    //       outputPath: 'test-case-summary.md',
-    //       consoleOutput: true,
-    //       publishToRun: true
-    //     }
-    //   } as AzureReporterOptions
-    // ]
+    [
+      '@alex_neo/playwright-azure-reporter',
+      {
+        orgUrl: process.env.AZURE_DEVOPS_ORG_URL || 'https://dev.azure.com/your-organization',
+        token: process.env.AZURE_DEVOPS_TOKEN || '',
+        planId: parseInt(process.env.AZURE_TEST_PLAN_ID || '0'),
+        projectName: process.env.AZURE_PROJECT_NAME || 'Your Project Name',
+        logging: true,
+        testRunTitle: `Future TRS Tests - ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} - ${process.env.CI ? 'Pipeline' : 'Local'}`,
+        publishTestResultsMode: 'testRun',
+        uploadAttachments: true,
+        attachmentsType: ['screenshot', 'video', 'trace'],
+        testRunConfig: {
+          comment: 'Automated Playwright Test Execution',
+          configurationIds: [1], // Default configuration ID - you can get actual IDs from Azure DevOps
+        },
+        // Enable test case summary for unmatched test cases
+        testCaseSummary: {
+          enabled: true,
+          outputPath: 'test-case-summary.md',
+          consoleOutput: true,
+          publishToRun: true
+        }
+      } as AzureReporterOptions
+    ]
   ],
   use: {
     trace: 'on',

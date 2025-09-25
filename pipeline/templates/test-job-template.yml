@@ -28,11 +28,24 @@ jobs:
         inputs:
           command: "ci"
 
+      # Install dotenv if not already in package.json dependencies
+      - task: Npm@1
+        displayName: "Install dotenv for environment variables"
+        inputs:
+          command: "install"
+          arguments: "dotenv --save-dev"
+
       - task: PowerShell@2
         displayName: "Run Tests"
         continueOnError: true
         env:
           CI: "true"
+          # Azure Test Plans Integration Variables
+          AZURE_DEVOPS_ORG_URL: $(AzureDevOpsOrgUrl)
+          AZURE_DEVOPS_TOKEN: $(AzureDevOpsToken)
+          AZURE_TEST_PLAN_ID: $(AzureTestPlanId)
+          AZURE_PROJECT_NAME: $(AzureProjectName)
+          # Merge in any additional environment variables passed via parameters
           ${{ insert }}: ${{ parameters.environmentVariables }}
         inputs:
           targetType: "inline"
@@ -61,3 +74,11 @@ jobs:
         inputs:
           PathtoPublish: "$(System.DefaultWorkingDirectory)/test-results"
           ArtifactName: "${{ parameters.jobName }}-test-artifacts"
+
+      # NEW: Publish the Azure Test Plans summary report
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish Test Case Summary"
+        condition: succeededOrFailed()
+        inputs:
+          PathtoPublish: "$(System.DefaultWorkingDirectory)/test-case-summary.md"
+          ArtifactName: "${{ parameters.jobName }}-test-case-summary"
