@@ -1,5 +1,6 @@
 // playwright.config.ts
 import { defineConfig, devices } from '@playwright/test';
+import type { AzureReporterOptions } from '@alex_neo/playwright-azure-reporter';
 
 export default defineConfig({
   testDir: './tests',
@@ -9,7 +10,36 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [
     ['junit', { outputFile: 'results.xml' }],
-    ['html']
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
+    [
+      '@alex_neo/playwright-azure-reporter',
+      {
+        orgUrl: process.env.AZURE_DEVOPS_ORG_URL || 'https://dev.azure.com/your-organization',
+        token: process.env.AZURE_DEVOPS_TOKEN || '',
+        planId: parseInt(process.env.AZURE_TEST_PLAN_ID || '0'),
+        projectName: process.env.AZURE_PROJECT_NAME || 'Your Project Name',
+        environment: 'QA',
+        logging: true,
+        testRunTitle: 'Playwright Automated Test Run',
+        publishTestResultsMode: 'testRun',
+        uploadAttachments: true,
+        attachmentsType: ['screenshot', 'video', 'trace'],
+        testRunConfig: {
+          owner: { 
+            displayName: process.env.AZURE_TEST_OWNER || 'Automated Test Runner'
+          },
+          comment: 'Automated Playwright Test Execution',
+          configurationIds: [1], // Default configuration ID - you can get actual IDs from Azure DevOps
+        },
+        // Enable test case summary for unmatched test cases
+        testCaseSummary: {
+          enabled: true,
+          outputPath: 'test-case-summary.md',
+          consoleOutput: true,
+          publishToRun: true
+        }
+      } as AzureReporterOptions
+    ]
   ],
   use: {
     trace: 'on',
@@ -47,6 +77,7 @@ export default defineConfig({
       },
       dependencies: ['portal-setup'],
     },
+    
     // Public File Setup and Tests
     {
       name: 'public-file-setup',
