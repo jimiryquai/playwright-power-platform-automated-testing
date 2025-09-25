@@ -75,11 +75,23 @@ jobs:
           PathtoPublish: "$(System.DefaultWorkingDirectory)/test-results"
           ArtifactName: "${{ parameters.jobName }}-test-artifacts"
 
-      # NEW: Publish the Azure Test Plans summary report
+      - task: PowerShell@2
+        displayName: "Check if summary file exists"
+        condition: succeededOrFailed()
+        inputs:
+          targetType: "inline"
+          script: |
+            if (Test-Path "test-case-summary.md") {
+              Write-Host "##vso[task.setvariable variable=summaryExists]true"
+              Write-Host "✅ test-case-summary.md found"
+            } else {
+              Write-Host "##vso[task.setvariable variable=summaryExists]false"
+              Write-Host "❌ test-case-summary.md not found"
+            }
+
       - task: PublishBuildArtifacts@1
         displayName: "Publish Test Case Summary"
-        condition: succeededOrFailed()
-        continueOnError: true
+        condition: and(succeededOrFailed(), eq(variables['summaryExists'], 'true'))
         inputs:
           PathtoPublish: "$(System.DefaultWorkingDirectory)/test-case-summary.md"
           ArtifactName: "${{ parameters.jobName }}-test-case-summary"
