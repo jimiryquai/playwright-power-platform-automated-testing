@@ -79,6 +79,7 @@ jobs:
       - task: PublishBuildArtifacts@1
         displayName: "Publish Test Case Summary"
         condition: succeededOrFailed()
+        continueOnError: true
         inputs:
           PathtoPublish: "$(System.DefaultWorkingDirectory)/test-case-summary.md"
           ArtifactName: "${{ parameters.jobName }}-test-case-summary"
