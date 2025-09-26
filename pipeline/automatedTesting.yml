@@ -7,13 +7,6 @@ resources:
         include:
         - main
 
-  - pipeline: dev-team-build
-    source: 'Future TRS.dev-team-pipeline-name'  # Replace with dev team's pipeline name
-    trigger:
-      branches:
-        include:
-        - main
-
 trigger:
   branches:
     include:
