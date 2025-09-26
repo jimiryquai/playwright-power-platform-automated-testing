@@ -1,0 +1,20 @@
+# minimal-trigger-pipeline.yml (in your minimal trigger repo)
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- script: |
+    echo "=== Minimal Trigger Pipeline ==="
+    echo "Execution Time: $(date)"
+    echo "Build ID: $(Build.BuildId)"
+    echo "Repository: $(Build.Repository.Name)"
+    echo "This will trigger the main test pipeline"
+  displayName: 'Minimal Trigger Execution'
+
+- script: |
+    echo "Minimal trigger completed successfully"
+    echo "Main pipeline should be triggered now"
+  displayName: 'Completion Message'
