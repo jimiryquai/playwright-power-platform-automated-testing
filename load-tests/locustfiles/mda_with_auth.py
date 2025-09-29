@@ -1,110 +1,187 @@
-# load-tests/locustfiles/mda_with_auth.py
+# load-tests/locustfiles/mda_web_only.py
 """
-MDA/D365 load test that reuses Playwright authentication.
+MDA load test using ONLY web UI endpoints (no API calls)
+This works with cookie authentication from Playwright
 """
 
 from locust import HttpUser, task, between, events
 import os
 import sys
-import json
 import random
 from datetime import datetime
 from pathlib import Path
 
-# Add parent directory to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
 
-# IMPORTANT: Load .env file
 from dotenv import load_dotenv
-load_dotenv()  # This loads your .env file
+load_dotenv()
 
 from helpers.playwright_auth import PlaywrightAuthReuser
 
-class MDAAuthenticatedUser(HttpUser):
-    """MDA user with authentication from Playwright tests"""
+class MDAWebOnlyUser(HttpUser):
+    """Test MDA using only web UI endpoints that work with cookies"""
     
-    wait_time = between(1, 3)
-    
-    # Now this will actually read from your .env file
-    host = os.getenv('MDA_URL', 'https://org.crm.dynamics.com')
+    wait_time = between(2, 5)  # Users browse, not rapid-fire API calls
+    host = os.getenv('APP_URL', 'https://org.crm.dynamics.com')
     
     def on_start(self):
-        """Set up authentication from Playwright's saved state"""
+        """Load cookie auth from Playwright"""
         self.user_id = f"user_{random.randint(1000, 9999)}"
-        print(f"🚀 User {self.user_id} starting...")
-        print(f"📍 Target URL: {self.host}")  # Debug line to show actual URL
         
         try:
             auth = PlaywrightAuthReuser('mda')
-            auth.apply_auth_to_locust_client(self.client)
-            print(f"✅ User {self.user_id}: Authentication loaded from Playwright")
-            self.verify_auth()
+            cookies = auth.get_cookies()
+            
+            # Apply cookies to session
+            for name, value in cookies.items():
+                self.client.cookies.set(name, value)
+            
+            print(f"✅ User {self.user_id}: Loaded {len(cookies)} cookies")
+            
+            # Store common entity types for random selection
+            self.entities = ['account', 'contact', 'lead']
+            
         except Exception as e:
             print(f"❌ Failed to load auth: {e}")
-            print("   Make sure to run: npm run setup:mda")
+            print("   Run: npm run setup:mda")
     
-    def verify_auth(self):
-        """Verify that authentication is working"""
+    @task(10)
+    def dashboard(self):
+        """Load main dashboard - most common action"""
         with self.client.get(
-            "/api/data/v9.2/WhoAmI",
-            name="Verify Auth",
+            "/main.aspx",
+            name="Dashboard",
             catch_response=True
         ) as response:
             if response.status_code == 200:
-                data = response.json()
-                print(f"✅ Authenticated as: {data.get('UserId', 'Unknown')}")
+                # Check if we're actually logged in (not redirected to login)
+                if "Microsoft Dynamics 365" in response.text or "sitemap" in response.text:
+                    response.success()
+                else:
+                    response.failure("Got login page - not authenticated")
+            else:
+                response.failure(f"Status {response.status_code}")
+    
+    @task(8)
+    def list_accounts(self):
+        """Browse accounts list view"""
+        with self.client.get(
+            "/main.aspx?pagetype=entitylist&etn=account",
+            name="Accounts List",
+            catch_response=True
+        ) as response:
+            if response.status_code == 200:
                 response.success()
             else:
-                print(f"⚠️  Auth verification failed with status {response.status_code}")
-                response.failure(f"Auth check failed: {response.status_code}")
+                response.failure(f"Status {response.status_code}")
+    
+    @task(6)
+    def list_contacts(self):
+        """Browse contacts list view"""
+        with self.client.get(
+            "/main.aspx?pagetype=entitylist&etn=contact",
+            name="Contacts List",
+            catch_response=True
+        ) as response:
+            if response.status_code == 200:
+                response.success()
+            else:
+                response.failure(f"Status {response.status_code}")
+    
+
     
     @task(5)
-    def list_accounts(self):
-        """List accounts"""
-        with self.client.get(
-            "/api/data/v9.2/accounts?$top=20&$select=name,accountnumber",
-            name="List Accounts",
-            catch_response=True
-        ) as response:
-            if response.status_code == 200:
-                response.success()
-                data = response.json()
-                self.account_ids = [acc['accountid'] for acc in data.get('value', [])]
-            elif response.status_code == 401:
-                response.failure("Not authenticated - run 'npm run setup:mda' first")
-            else:
-                response.failure(f"Failed: {response.status_code}")
-    
-    @task(2)
-    def search_accounts(self):
-        """Search accounts"""
-        terms = ['Test', 'Demo', 'Sample']
-        term = random.choice(terms)
+    def global_search(self):
+        """Use the global search feature"""
+        search_terms = ["test", "demo", "account", "contact", "john", "smith", "2024"]
+        term = random.choice(search_terms)
         
         with self.client.get(
-            f"/api/data/v9.2/accounts?$filter=contains(name,'{term}')",
-            name="Search Accounts",
+            f"/main.aspx?pagetype=search&searchText={term}",
+            name="Global Search",
             catch_response=True
         ) as response:
             if response.status_code == 200:
                 response.success()
             else:
-                response.failure(f"Failed: {response.status_code}")
+                response.failure(f"Status {response.status_code}")
+    
+    @task(3)
+    def open_create_form(self):
+        """Open a create new record form"""
+        entity = random.choice(self.entities)
+        
+        with self.client.get(
+            f"/main.aspx?pagetype=entityrecord&etn={entity}&id=",
+            name=f"Create {entity.title()} Form",
+            catch_response=True
+        ) as response:
+            if response.status_code == 200:
+                response.success()
+            else:
+                response.failure(f"Status {response.status_code}")
+    
+    @task(2)
+    def advanced_find(self):
+        """Open Advanced Find page"""
+        with self.client.get(
+            "/main.aspx?pagetype=advancedfind",
+            name="Advanced Find",
+            catch_response=True
+        ) as response:
+            if response.status_code == 200:
+                response.success()
+            else:
+                response.failure(f"Status {response.status_code}")
+    
+    @task(4)
+    def view_recent_items(self):
+        """View recently accessed items"""
+        with self.client.get(
+            "/main.aspx?pagetype=recentlyviewed",
+            name="Recent Items",
+            catch_response=True
+        ) as response:
+            if response.status_code == 200:
+                response.success()
+            else:
+                response.failure(f"Status {response.status_code}")
+    
+    @task(2)
+    def activities_view(self):
+        """View activities/timeline"""
+        with self.client.get(
+            "/main.aspx?pagetype=entitylist&etn=activitypointer",
+            name="Activities List",
+            catch_response=True
+        ) as response:
+            if response.status_code == 200:
+                response.success()
+            else:
+                response.failure(f"Status {response.status_code}")
 
+# Event handlers for reporting
 @events.test_start.add_listener
 def on_test_start(environment, **kwargs):
-    # Reload to make sure we have the latest env
-    load_dotenv()
     print(f"""
-    🚀 MDA Load Test Starting (Using Playwright Auth)
-    ================================================
-    Target: {os.getenv('APP_URL', 'APP_URL not set!')}
-    Auth: Reusing from auth/user.json
+    🌐 MDA Web UI Load Test Starting (No API Calls)
+    ===============================================
+    Testing ONLY web interface endpoints
+    Target: {os.getenv('APP_URL')}
     Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-    ================================================
+    ===============================================
+    """)
+
+@events.test_stop.add_listener  
+def on_test_stop(environment, **kwargs):
+    print(f"""
+    ✅ Load Test Complete
+    =====================
+    Total Requests: {environment.stats.total.num_requests}
+    Failures: {environment.stats.total.num_failures}
+    Avg Response Time: {environment.stats.total.avg_response_time:.2f}ms
+    =====================
     """)
 
 if __name__ == "__main__":
-    load_dotenv()
-    print(f"APP_URL from .env: {os.getenv('APP_URL', 'Not found!')}")
-    print("Run with: locust -f mda_with_auth.py")
+    print("Run with: locust -f mda_web_only.py")
