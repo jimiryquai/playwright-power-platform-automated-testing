@@ -7,7 +7,7 @@ This document outlines the recommended Azure DevOps YAML Pipeline strategy for r
 The application has multiple user roles, and for each role will need its own distinct authentication using the authentication scraper and, therefore, a different Playwright authentication setup script (`*.setup.ts`). By isolating these into separate stages, we achieve:
 
 -   **Clarity:** The pipeline clearly shows the test execution flow for each application.
--   **Parallelism:** Stages can be run in parallel to speed up the overall execution time.
+-   **Parallelism:** Stages can be run in parallel to speed up the overall execution time. Although make sure the same user is not being assigned the same role at the same time in two separate stages.
 -   **Isolation:** A failure in one application's test suite does not prevent others from running.
 -   **Targeted Re-runs:** If tests for only one application fail, that specific stage can be re-run without needing to execute the entire pipeline.
 
