@@ -10,14 +10,12 @@ npm run load:install
 
 # 2. Setup authentication (first time only)
 npm run setup:portal
-npm run setup:public-file
 
 # 3. Verify auth is working
 npm run load:test-auth
 
 # 4. Run load tests
 npm run load:portal        # Interactive UI
-npm run load:public-file   # Interactive UI
 ```
 
 ## What's Included
@@ -29,7 +27,6 @@ npm run load:public-file   # Interactive UI
   - Anti-forgery token handling
   - Web API PATCH operations
   - Tests breaking point for concurrent API calls
-- **Public File** (`public_file_with_auth.py`) - Public file app testing
 
 ### Helper Tools
 - **`helpers/playwright_auth.py`** - Reuses Playwright authentication
@@ -51,7 +48,6 @@ Opens a web UI at http://localhost:8089:
 
 ```bash
 npm run load:portal
-npm run load:public-file
 ```
 
 ### Headless Mode (CI/CD)
@@ -60,7 +56,6 @@ Runs automatically and generates HTML reports:
 
 ```bash
 npm run load:ci:portal        # 20 users, 60s
-npm run load:ci:public-file   # 10 users, 60s
 ```
 
 Reports saved to: `load-tests/reports/`
@@ -86,8 +81,7 @@ Parameters:
 ```
 load-tests/
 ├── locustfiles/
-│   ├── portal_with_auth.py          # Portal load test (consolidated)
-│   └── public_file_with_auth.py     # Public file load test
+│   └── portal_with_auth.py          # Portal load test
 ├── helpers/
 │   └── playwright_auth.py           # Auth helper
 ├── requirements.txt                 # Python dependencies
@@ -102,7 +96,6 @@ load-tests/
 ```bash
 # Re-run auth setup
 npm run setup:portal
-npm run setup:public-file
 
 # Verify it works
 npm run load:test-auth
@@ -134,7 +127,6 @@ Required in `.env`:
 
 ```env
 PORTAL_URL=https://your-portal.powerappsportals.com
-AZURE_APP_URL=https://your-app.azurewebsites.net
 ```
 
 ## Dependencies
@@ -157,7 +149,6 @@ See main documentation for detailed examples.
 
 After running headless tests, open:
 - `reports/portal-report.html`
-- `reports/public-file-report.html`
 
 Key metrics to monitor:
 - Response times (50th, 95th, 99th percentile)
@@ -178,5 +169,3 @@ Tests can run on schedule (nightly) or manually triggered.
 - **After changes**: Re-run auth setup if app behavior changed
 
 ---
-
-For complete documentation, see the **Load Testing Handover Documentation** artifact.

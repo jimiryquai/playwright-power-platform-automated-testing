@@ -15,13 +15,9 @@
     "load:install": "uv pip install -r load-tests/requirements.txt",
     "load:test-auth": "cd load-tests && python test_auth.py",
     "load:portal": "bash run-locust.sh portal_with_auth || run-locust.cmd portal_with_auth",
-    "load:public-file": "bash run-locust.sh public_file_with_auth || run-locust.cmd public_file_with_auth",
     "load:ci:portal": "cd load-tests && python -m locust -f locustfiles/portal_with_auth.py --headless -u 20 -r 5 -t 60s --html reports/portal-report.html",
-    "load:ci:public-file": "cd load-tests && python -m locust -f locustfiles/public_file_with_auth.py --headless -u 10 -r 2 -t 60s --html reports/public-file-report.html",
     
-    "test:portal:full": "npm run setup:portal && npm run test:portal && npm run load:ci:portal",
-    "test:public-file:full": "npm run setup:public-file && npm run test:public-file && npm run load:ci:public-file",
-    "test:all:full": "npm run test:portal:full && npm run test:public-file:full"
+    "test:portal:full": "npm run setup:portal && npm run test:portal && npm run load:ci:portal"
   },
   "keywords": [],
   "author": "",

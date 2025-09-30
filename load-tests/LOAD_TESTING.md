@@ -2,12 +2,12 @@
 
 ## Overview
 
-This repository uses **Locust** for load testing Power Platform applications (Portal and Public File apps). The load tests reuse authentication from **Playwright** tests, eliminating the need to handle authentication separately.
+This repository uses **Locust** for load testing Power Platform Portal applications. The load tests reuse authentication from **Playwright** tests, eliminating the need to handle authentication separately.
 
 ### Key Features
 
 - **Authentication Reuse**: Uses Playwright-saved auth state (cookies/tokens)
-- **Multi-App Support**: Tests both Portal and Public File applications
+- **Portal Focus**: Tests Portal Web API operations
 - **CI/CD Ready**: Headless mode with HTML reports
 - **Easy Setup**: One command to install dependencies
 
@@ -18,13 +18,13 @@ This repository uses **Locust** for load testing Power Platform applications (Po
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    Playwright Tests                      │
-│  (Handles authentication, saves to auth/*.json)          │
+│  (Handles authentication, saves to auth/auth.json)       │
 └────────────────────────┬────────────────────────────────┘
                          │
                          │ Saves auth state
                          ▼
                 ┌────────────────┐
-                │  auth/*.json   │
+                │ auth/auth.json │
                 │  - Cookies     │
                 │  - Tokens      │
                 └───────┬────────┘
@@ -35,8 +35,7 @@ This repository uses **Locust** for load testing Power Platform applications (Po
 │              Locust Load Tests                           │
 │  (Reuses auth, simulates concurrent users)               │
 │                                                           │
-│  ├── portal_with_auth.py      → Portal load test        │
-│  └── public_file_with_auth.py → Public File load test   │
+│  └── portal_with_auth.py → Portal Web API test          │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -47,8 +46,7 @@ This repository uses **Locust** for load testing Power Platform applications (Po
 ```
 load-tests/
 ├── locustfiles/                    # Load test scenarios
-│   ├── portal_with_auth.py         # Portal load test (consolidated)
-│   └── public_file_with_auth.py    # Public File load test
+│   └── portal_with_auth.py         # Portal Web API load test
 │
 ├── helpers/
 │   └── playwright_auth.py          # Helper to read Playwright auth
@@ -94,14 +92,10 @@ Load tests require Playwright authentication to be set up first:
 ```bash
 # Set up Portal authentication
 npm run setup:portal
-
-# Set up Public File authentication
-npm run setup:public-file
 ```
 
-This creates auth files:
+This creates auth file:
 - `auth/auth.json` (Portal)
-- `auth/public-file.json` (Public File)
 
 ### 3. Environment Variables
 
@@ -109,7 +103,6 @@ Ensure your `.env` file contains:
 
 ```env
 PORTAL_URL=https://your-portal.powerappsportals.com
-AZURE_APP_URL=https://your-public-file-app.azurewebsites.net
 ```
 
 ---
@@ -124,9 +117,6 @@ npm run load:test-auth
 
 # 2. Run Portal load test (interactive UI)
 npm run load:portal
-
-# 3. Run Public File load test (interactive UI)
-npm run load:public-file
 ```
 
 ### Interactive Mode (Development)
@@ -139,7 +129,6 @@ Interactive mode opens a web UI at http://localhost:8089 where you can:
 
 ```bash
 npm run load:portal        # Portal (opens UI)
-npm run load:public-file   # Public File (opens UI)
 ```
 
 ### Headless Mode (CI/CD)
@@ -149,9 +138,6 @@ Headless mode runs tests automatically and generates HTML reports:
 ```bash
 # Portal: 20 users, spawn 5/sec, run for 60s
 npm run load:ci:portal
-
-# Public File: 10 users, spawn 2/sec, run for 60s
-npm run load:ci:public-file
 
 # View reports in load-tests/reports/
 ```
@@ -199,21 +185,6 @@ Tests the complete Web API flow for form submissions and PATCH operations:
 **Purpose:**
 Designed to find the breaking point for concurrent Web API operations on Power Apps Portals.
 
-### Public File Load Test (`public_file_with_auth.py`)
-
-Simulates users accessing files:
-
-**Tasks:**
-- View homepage (weight: 5)
-- List files (weight: 3)
-- Search files (weight: 2)
-- Download files (weight: 1)
-
-**What it tests:**
-- File access performance
-- Download capabilities
-- Search performance
-
 ---
 
 ## Troubleshooting
@@ -226,7 +197,6 @@ Simulates users accessing files:
 ```bash
 # 1. Re-run Playwright auth setup
 npm run setup:portal
-npm run setup:public-file
 
 # 2. Verify auth is working
 npm run load:test-auth
@@ -262,7 +232,6 @@ npm run load:install
 **Solution:** Use the Windows scripts:
 ```bash
 run-locust.cmd portal_with_auth
-run-locust.cmd public_file_with_auth
 ```
 
 ---
@@ -288,7 +257,7 @@ class YourNewUser(HttpUser):
     
     def on_start(self):
         """Load authentication"""
-        auth = PlaywrightAuthReuser('your-app-type')
+        auth = PlaywrightAuthReuser('portal')  # Currently only portal supported
         cookies = auth.get_cookies()
         for name, value in cookies.items():
             self.client.cookies.set(name, value)
@@ -312,19 +281,6 @@ Add to `package.json`:
 }
 ```
 
-### 3. Update Auth Helper
-
-If needed, add your app to `helpers/playwright_auth.py`:
-
-```python
-self.auth_files = {
-    'mda': self.project_root / 'auth' / 'user.json',
-    'portal': self.project_root / 'auth' / 'auth.json',
-    'public-file': self.project_root / 'auth' / 'public-file.json',
-    'your-app': self.project_root / 'auth' / 'your-app.json',  # Add this
-}
-```
-
 ---
 
 ## CI/CD Integration
@@ -332,7 +288,7 @@ self.auth_files = {
 ### GitHub Actions Example
 
 ```yaml
-name: Load Tests
+name: Portal Load Tests
 
 on:
   schedule:
@@ -364,9 +320,7 @@ jobs:
           npm run load:install
       
       - name: Setup authentication
-        run: |
-          npm run setup:portal
-          npm run setup:public-file
+        run: npm run setup:portal
         env:
           PORTAL_URL: ${{ secrets.PORTAL_URL }}
           PORTAL_USERNAME: ${{ secrets.PORTAL_USERNAME }}
@@ -374,9 +328,6 @@ jobs:
       
       - name: Run Portal load test
         run: npm run load:ci:portal
-      
-      - name: Run Public File load test
-        run: npm run load:ci:public-file
       
       - name: Upload reports
         uses: actions/upload-artifact@v3
@@ -401,8 +352,8 @@ jobs:
 
 ### 3. Test Different Scenarios
 - Peak hours vs off-hours
-- Different user behaviors (browsing vs downloading)
-- Different geographic locations (if applicable)
+- Different form submission patterns
+- Different user behaviors
 
 ### 4. Monitor and Alert
 - Set up monitoring on your Power Platform environment
@@ -422,7 +373,6 @@ After running headless tests, open the HTML report:
 
 ```
 load-tests/reports/portal-report.html
-load-tests/reports/public-file-report.html
 ```
 
 ### Key Metrics
@@ -438,6 +388,15 @@ load-tests/reports/public-file-report.html
 - **Sudden spikes** in response time = investigate
 - **High failure rates** (>1%) = problem
 - **Stable metrics** across test duration = good
+
+### Interpreting PATCH Performance
+
+The Portal load test specifically tracks Web API PATCH operations. Look for:
+- **204 responses**: Success (expected for PATCH)
+- **400 responses**: Validation errors
+- **401/403 responses**: Authentication issues
+- **429 responses**: Rate limiting (breaking point reached)
+- **500+ responses**: Server errors
 
 ---
 
@@ -467,26 +426,26 @@ load-tests/reports/public-file-report.html
 # Setup (first time)
 npm run load:install
 npm run setup:portal
-npm run setup:public-file
 
 # Verify
 npm run load:test-auth
 
 # Run tests (interactive)
 npm run load:portal
-npm run load:public-file
 
 # Run tests (CI/CD)
 npm run load:ci:portal
-npm run load:ci:public-file
+
+# Full test suite
+npm run test:portal:full
 ```
 
 ### File Locations
 
-- Load test files: `load-tests/locustfiles/`
+- Load test file: `load-tests/locustfiles/portal_with_auth.py`
 - Auth helper: `load-tests/helpers/playwright_auth.py`
 - Reports: `load-tests/reports/`
-- Auth state: `auth/auth.json`, `auth/public-file.json`
+- Auth state: `auth/auth.json`
 
 ### Common Issues
 
@@ -496,6 +455,7 @@ npm run load:ci:public-file
 | Module not found | Activate venv and run `npm run load:install` |
 | Bash not found | Use `run-locust.cmd` on Windows |
 | SSL errors | Already handled, check proxy |
+| All PATCH fail with 400 | Check form fields match your portal |
 
 ---
 
@@ -515,3 +475,17 @@ npm run load:ci:public-file
 - Review load test output for specific errors
 - Check Playwright auth is working: `npm run load:test-auth`
 - Review `.env` file for correct URLs
+
+---
+
+## Summary
+
+This load testing setup provides:
+- ✅ Simple authentication reuse from Playwright
+- ✅ Portal Web API stress testing
+- ✅ Easy local development with interactive UI
+- ✅ CI/CD ready with headless mode
+- ✅ Detailed HTML reports
+- ✅ Corporate network friendly (SSL disabled)
+
+**Key Point**: These tests find the breaking point for your Portal's Web API PATCH operations under concurrent load. Use them regularly to ensure your application can handle expected traffic.

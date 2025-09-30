@@ -1,4 +1,4 @@
-# load-tests/locustfiles/portal_with_auth.py
+# load-tests/locustfiles/portal_web_api_load_test.py
 """
 Portal Web API Load Test - Complete Form Submission Flow with API PATCH
 
@@ -132,81 +132,71 @@ class PortalWebAPIUser(HttpUser):
         with self.client.post(
             form_url,
             data=form_data,
-            name="2. Submit Org Form",
+            name="2. Submit Form",
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Referer": f"{self.host}{form_url}",
+                "Origin": self.host,
+            },
             catch_response=True,
             allow_redirects=False
-        ) as submit_response:
+        ) as response:
             
-            if submit_response.status_code not in [302, 303]:
-                submit_response.failure(f"Expected redirect, got {submit_response.status_code}")
+            if response.status_code != 302:
+                response.failure(f"Expected 302 redirect, got {response.status_code}")
                 return
             
-            # Extract AppID from redirect URL
-            redirect_location = submit_response.headers.get("Location", "")
-            app_id_match = re.search(r"id=([a-f0-9-]{36})", redirect_location, re.IGNORECASE)
+            # Extract AppID from redirect location
+            location = response.headers.get("Location", "")
+            app_id_match = re.search(r'AppID=([a-f0-9-]+)', location, re.IGNORECASE)
             
             if not app_id_match:
-                submit_response.failure("No AppID in redirect Location header")
+                response.failure("No AppID in redirect location")
+                print(f"   Location was: {location}")
                 return
             
             app_id = app_id_match.group(1)
-            submit_response.success()
-            print(f"📋 User {self.user_id}: Form submitted, AppID = {app_id[:8]}...")
-            
-            # Continue to get token and PATCH
-            self.get_token_and_patch(app_id)
-    
-    def get_token_and_patch(self, app_id: str):
-        """STEP 3: Get anti-forgery token and STEP 4: PATCH application"""
+            response.success()
+            print(f"   AppID extracted: {app_id[:8]}...")
         
-        # STEP 3: Get anti-forgery token
+        # STEP 3: Get anti-forgery token for API call
+        timestamp = int(datetime.now().timestamp() * 1000)
+        
         with self.client.get(
-            "/_layout/tokenhtml",
+            f"/_layout/tokenhtml?_={timestamp}",
             name="3. Get API Token",
             catch_response=True
         ) as token_response:
             
             if token_response.status_code != 200:
-                token_response.failure(f"Token fetch failed: {token_response.status_code}")
+                token_response.failure(f"Token request failed: {token_response.status_code}")
                 return
             
-            # Extract token from HTML
+            # Extract __RequestVerificationToken from HTML
             token_match = re.search(
-                r'<input[^>]*name="__RequestVerificationToken"[^>]*value="([^"]*)"',
-                token_response.text,
-                re.IGNORECASE
+                r'name="__RequestVerificationToken"[^>]+value="([^"]+)"',
+                token_response.text
             )
             
             if not token_match:
-                token_response.failure("Token not found in response HTML")
+                token_response.failure("No RequestVerificationToken found in response")
                 return
             
-            token = token_match.group(1)
+            api_token = token_match.group(1)
             token_response.success()
-            print(f"🔑 User {self.user_id}: Got API token")
-            
-            # STEP 4: PATCH the application via Web API
-            self.patch_application(app_id, token)
-    
-    def patch_application(self, app_id: str, token: str):
-        """STEP 4: PATCH application via Web API"""
+            print(f"   API token obtained: {api_token[:20]}...")
         
-        api_url = f"/_api/cg_applications({app_id})"
-        
-        patch_data = {
-            "cg_name": f"Updated Org {random.randint(1000, 9999)}",
-            "cg_status": 121480001  # In Progress status
-        }
-        
-        headers = {
-            "__RequestVerificationToken": token,
-            "Content-Type": "application/json",
-        }
+        # STEP 4: PATCH application via Web API (THE KEY TEST)
+        # Randomly choose Yes (121480000) or No (121480001)
+        measures_choice = random.choice([121480000, 121480001])
         
         with self.client.patch(
-            api_url,
-            json=patch_data,
-            headers=headers,
+            f"/_api/cg_applications({app_id})",
+            json={"cg_measures_already_applied": measures_choice},
+            headers={
+                "__RequestVerificationToken": api_token,
+                "Content-Type": "application/json",
+            },
             name="4. PATCH Web API ⭐",
             catch_response=True
         ) as patch_response:
@@ -322,4 +312,4 @@ def on_test_stop(environment, **kwargs):
         print(f"    ❌ {patch_stats.fail_ratio*100:.1f}% failure rate - BREAKING POINT REACHED")
 
 if __name__ == "__main__":
-    print("Run with: locust -f portal_with_auth.py")
+    print("Run with: locust -f portal_web_api_load_test.py")
