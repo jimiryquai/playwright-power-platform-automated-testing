@@ -1,309 +1,208 @@
-# load-tests/ftrs_portal_optimized.py
-"""
-FTRS Portal Organization Form Load Test
-Optimized for maximum submission throughput
-"""
-
-from locust import HttpUser, task, between, events, FastHttpUser, constant_pacing
-import os
-import random
-import re
-import json
-import uuid
-from datetime import datetime
-from pathlib import Path
-from faker import Faker
-from urllib.parse import parse_qs, urlparse
-import threading
-
-# Load environment from project root .env
+from locust import HttpUser, task, between
 from dotenv import load_dotenv
-env_path = Path(__file__).parent.parent / '.env'
-if env_path.exists():
-    load_dotenv(env_path)
-else:
-    load_dotenv()
+from bs4 import BeautifulSoup
+import os
+import time
+import random
+from urllib.parse import urlencode
 
-fake = Faker(['en_GB'])
+load_dotenv()
 
-# Global counters
-submission_counter = {"count": 0, "lock": threading.Lock()}
-successful_appids = {"ids": [], "lock": threading.Lock()}
-failed_counter = {"count": 0, "lock": threading.Lock()}
-
-# Pre-generate test data
-PRE_GENERATED_ORGS = []
-PRE_GENERATED_COUNT = 1000
-
-def pre_generate_org_data():
-    """Pre-generate organization data for FTRS portal"""
-    global PRE_GENERATED_ORGS
-    print(f"⚡ Pre-generating {PRE_GENERATED_COUNT} organization datasets...")
-    
-    for _ in range(PRE_GENERATED_COUNT):
-        org_number = random.randint(10000, 99999)
-        
-        org_data = {
-            'cg_organisationname': f"{fake.company()} Ltd {org_number}",
-            'cg_addressline1': fake.street_address(),
-            'cg_addressline2': '',
-            'cg_citytown': fake.city(),
-            'cg_county': random.choice(['Greater London', 'West Midlands', 'Greater Manchester']),
-            'cg_postalcode': fake.postcode(),
-            'cg_country': 'United Kingdom',
-            'cg_firstreporgrelationship': str(random.randint(0, 2)),
-            'cg_organisationtype': random.choice(['Limited Company', 'PLC', 'Partnership']),
-            'cg_contactname': fake.name(),
-            'cg_contactemail': fake.company_email(),
-            'cg_contactphone': fake.phone_number(),
-            'cg_registrationnumber': f"GB{random.randint(10000000, 99999999)}",
-            'cg_vatnumber': f"GB{random.randint(100000000, 999999999)}",
-            'submit': 'Submit',
-            '__RequestVerificationToken': '',
-        }
-        
-        PRE_GENERATED_ORGS.append(org_data)
-    
-    print(f"✅ Pre-generation complete!")
-
-# Pre-generate on startup
-pre_generate_org_data()
-
-
-class FTRSPortalUser(FastHttpUser):
-    """
-    FTRS Portal user for maximum form submission throughput
-    """
-    
-    wait_time = constant_pacing(0.3)  # Aggressive pacing
-    host = os.getenv('PORTAL_URL', 'https://ftrs-test.powerappsportals.com')
-    
-    # Connection settings
-    network_timeout = 30.0
-    connection_timeout = 30.0
+class FTRSPortalUser(HttpUser):
+    host = os.getenv('PORTAL_URL')
+    wait_time = between(1, 5)
     
     def on_start(self):
-        """Initialize user session"""
-        self.user_id = f"ftrs_user_{random.randint(1000, 9999)}"
-        self.submission_count = 0
-        self.csrf_token = None
-        self.org_data_index = random.randint(0, PRE_GENERATED_COUNT - 1)
-        
-        # Try to get initial CSRF token
-        self.initialize_session()
-        
-        print(f"🚀 User {self.user_id} ready")
+        """Initialize session - cookies are automatically maintained by Locust"""
+        print(f"Starting user session for {self.host}")
+        # Initial visit to establish session
+        response = self.client.get("/")
+        print(f"Session established: {response.status_code}")
     
-    def initialize_session(self):
-        """Get initial CSRF token from form page"""
-        try:
-            with self.client.get(
-                "/New-Application-Organisation-Information/",
-                catch_response=True,
-                headers={'Accept': 'text/html,application/xhtml+xml'},
-                timeout=10
-            ) as response:
-                if response.status_code == 200:
-                    self.extract_csrf_token(response.text)
-                    response.success()
-        except Exception as e:
-            print(f"Session init error: {e}")
+    def extract_form_fields(self, html_content):
+        """Extract all form fields including hidden ASP.NET fields"""
+        soup = BeautifulSoup(html_content, 'html.parser')
+        form_data = {}
+        
+        # Find the main form
+        form = soup.find('form')
+        if not form:
+            print("No form found on page")
+            return form_data
+        
+        # Extract ALL input fields
+        for input_field in form.find_all('input'):
+            name = input_field.get('name')
+            if name:
+                # Get value or default to empty string
+                value = input_field.get('value', '')
+                form_data[name] = value
+                
+                # Debug: Show what we're extracting
+                if name in ['__VIEWSTATE', '__VIEWSTATEGENERATOR', '__EVENTVALIDATION', '__RequestVerificationToken']:
+                    print(f"Found {name}: {value[:50]}..." if len(value) > 50 else f"Found {name}: {value}")
+        
+        # Extract select fields
+        for select in form.find_all('select'):
+            name = select.get('name')
+            if name:
+                # Get first option value as default
+                option = select.find('option', {'selected': True}) or select.find('option')
+                form_data[name] = option.get('value', '') if option else ''
+        
+        # Extract textareas
+        for textarea in form.find_all('textarea'):
+            name = textarea.get('name')
+            if name:
+                form_data[name] = textarea.text or ''
+        
+        print(f"Extracted {len(form_data)} form fields")
+        return form_data
     
-    def extract_csrf_token(self, html_content):
-        """Extract CSRF token from HTML"""
-        if html_content:
-            patterns = [
-                r'<input[^>]*name="__RequestVerificationToken"[^>]*value="([^"]+)"',
-                r'__RequestVerificationToken["\']:\s*["\']([^"\']+)["\']',
-            ]
-            
-            for pattern in patterns:
-                match = re.search(pattern, html_content, re.IGNORECASE)
-                if match:
-                    self.csrf_token = match.group(1)
-                    break
+    @task(10)
+    def load_form_only(self):
+        """Just load the form page"""
+        response = self.client.get(
+            "/New-Application-Organisation-Information/",
+            name="Load Organisation Form"
+        )
+        print(f"Form load: {response.status_code}")
     
-    def get_next_org_data(self):
-        """Get pre-generated org data"""
-        data = PRE_GENERATED_ORGS[self.org_data_index].copy()
-        self.org_data_index = (self.org_data_index + 1) % PRE_GENERATED_COUNT
+    @task(30)
+    def submit_organisation_form(self):
+        """Load form, extract fields, and submit"""
         
-        # Add CSRF token
-        if self.csrf_token:
-            data['__RequestVerificationToken'] = self.csrf_token
+        # Step 1: GET the form page
+        print("Loading form page...")
+        response = self.client.get(
+            "/New-Application-Organisation-Information/",
+            name="Load Form Before Submit"
+        )
         
-        # Make org name unique
-        data['cg_organisationname'] = f"{data['cg_organisationname']} {datetime.now().strftime('%H%M%S%f')[:8]}"
+        if response.status_code != 200:
+            print(f"Failed to load form: {response.status_code}")
+            return
         
-        return data
-    
-    @task(3)
-    def direct_form_submission(self):
-        """Direct submission to form endpoint"""
-        org_data = self.get_next_org_data()
+        # Step 2: Extract ALL form fields
+        form_data = self.extract_form_fields(response.text)
         
+        if not form_data:
+            print("No form data extracted, skipping submission")
+            return
+        
+        # Step 3: Update with our test data (keeping all hidden fields intact)
+        # Only update the fields you want to change
+        test_id = f"{random.randint(1000, 9999)}_{int(time.time())}"
+        
+        # Update only user-editable fields
+        # You'll need to check the actual field names from the form
+        form_data.update({
+            'OrganisationName': f'Test Organisation {test_id}',  # Adjust field name
+            'OrganisationEmail': f'test_{test_id}@example.com',  # Adjust field name
+            'OrganisationPhone': f'020 {random.randint(1000, 9999)} {random.randint(1000, 9999)}',  # Adjust field name
+            # Add other fields as needed - check actual field names from browser DevTools
+        })
+        
+        # Step 4: Submit with proper headers
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Cache-Control': 'max-age=0',
+            'Origin': self.host,
+            'Referer': f'{self.host}/New-Application-Organisation-Information/'
+        }
+        
+        # Submit the form
         with self.client.post(
             "/New-Application-Organisation-Information/",
-            data=org_data,
+            data=form_data,  # Locust will URL-encode this
+            headers=headers,
+            name="Submit Organisation Form",
             catch_response=True,
-            headers={
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Cache-Control': 'max-age=0',
-                'Origin': self.host,
-                'Referer': f'{self.host}/New-Application-Organisation-Information/',
-            },
-            timeout=15,
-            allow_redirects=False,
-            name="Submit Org Form"
+            allow_redirects=False  # Handle redirects manually to see what happens
         ) as response:
-            
-            # Check for success (302 redirect with AppID)
-            if response.status_code == 302:
-                location = response.headers.get('location', '')
-                
-                if 'AppID=' in location:
-                    app_id_match = re.search(r'AppID=([a-f0-9-]+)', location, re.IGNORECASE)
-                    if app_id_match:
-                        app_id = app_id_match.group(1)
-                        self.register_success(app_id)
-                        response.success()
-                        return
-                
-                response.failure("Redirect without AppID")
-                self.register_failure()
-                
-            elif response.status_code == 200:
-                response_text = response.text if response.text else ""
-                
-                if 'successfully' in response_text.lower() or 'thank you' in response_text.lower():
-                    self.register_success()
-                    response.success()
-                elif 'error' in response_text.lower() or 'required' in response_text.lower():
-                    self.extract_csrf_token(response_text)
-                    response.failure("Validation error")
-                    self.register_failure()
-                else:
-                    response.failure("Unknown response")
-                    self.register_failure()
-            else:
-                response.failure(f"Status: {response.status_code}")
-                self.register_failure()
-    
-    @task(1)
-    def full_flow_submission(self):
-        """Full flow with navigation"""
-        # Load form page first
-        with self.client.get(
-            "/New-Application-Organisation-Information/",
-            catch_response=True,
-            timeout=10,
-            name="Load Form"
-        ) as response:
-            if response.status_code == 200:
-                self.extract_csrf_token(response.text)
+            if response.status_code == 302 or response.status_code == 303:
+                # Success - form redirects after submission
+                location = response.headers.get('Location', '')
+                print(f"Form submitted successfully, redirected to: {location}")
                 response.success()
+            elif response.status_code == 200:
+                # Check if it's a success or error page
+                if "error" in response.text.lower() or "required" in response.text.lower():
+                    print("Form validation errors")
+                    response.failure("Form validation failed")
+                else:
+                    response.success()
             else:
-                response.failure(f"Failed to load form: {response.status_code}")
-                return
+                print(f"Unexpected response: {response.status_code}")
+                response.failure(f"Got status {response.status_code}")
+    
+    @task(5)
+    def submit_minimal_form(self):
+        """Simpler version - just test the submission mechanism"""
         
-        # Submit form
-        org_data = self.get_next_org_data()
+        # Get form
+        response = self.client.get("/New-Application-Organisation-Information/")
         
-        with self.client.post(
+        # Extract hidden fields only
+        soup = BeautifulSoup(response.text, 'html.parser')
+        form_data = {}
+        
+        # Get only the essential hidden fields
+        for input_field in soup.find_all('input', type='hidden'):
+            name = input_field.get('name')
+            if name:
+                form_data[name] = input_field.get('value', '')
+        
+        # Add minimal test data
+        form_data['test_field'] = 'test_value'
+        
+        # Submit
+        response = self.client.post(
             "/New-Application-Organisation-Information/",
-            data=org_data,
-            catch_response=True,
-            headers={
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Referer': f'{self.host}/New-Application-Organisation-Information/'
-            },
-            timeout=15,
-            allow_redirects=False,
-            name="Submit After Load"
-        ) as response:
-            if response.status_code == 302:
-                location = response.headers.get('location', '')
-                if 'AppID=' in location:
-                    app_id_match = re.search(r'AppID=([a-f0-9-]+)', location, re.IGNORECASE)
-                    if app_id_match:
-                        self.register_success(app_id_match.group(1))
-                        response.success()
-                        return
+            data=form_data,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            name="Submit Minimal Form"
+        )
+        print(f"Minimal submit: {response.status_code}")
+
+
+class SimpleFormTest(HttpUser):
+    """Debug version to see what's in the form"""
+    host = os.getenv('PORTAL_URL')
+    wait_time = between(5, 10)
+    
+    @task
+    def inspect_form(self):
+        """Load form and show what fields exist"""
+        response = self.client.get("/New-Application-Organisation-Information/")
+        
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            form = soup.find('form')
+            
+            if form:
+                print("\n=== FORM FIELDS ===")
                 
-            response.failure(f"Submission failed: {response.status_code}")
-            self.register_failure()
-    
-    def register_success(self, app_id=None):
-        """Track successful submission"""
-        with submission_counter["lock"]:
-            submission_counter["count"] += 1
-            self.submission_count += 1
-            
-            if app_id:
-                with successful_appids["lock"]:
-                    successful_appids["ids"].append(app_id)
-                    if len(successful_appids["ids"]) % 50 == 0:
-                        print(f"🎯 Milestone: {len(successful_appids['ids'])} AppIDs generated!")
-            
-            if submission_counter["count"] % 25 == 0:
-                print(f"📊 Progress: {submission_counter['count']} submissions")
-    
-    def register_failure(self):
-        """Track failed submission"""
-        with failed_counter["lock"]:
-            failed_counter["count"] += 1
-    
-    def on_stop(self):
-        """Cleanup"""
-        if self.submission_count > 0:
-            print(f"✓ User {self.user_id}: {self.submission_count} submissions")
-
-
-# Event Handlers
-@events.test_start.add_listener
-def on_test_start(environment, **kwargs):
-    """Test start"""
-    print(f"""
-    ⚡ FTRS Portal Load Test Starting
-    ==================================
-    Target: {os.getenv('PORTAL_URL')}
-    Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-    ==================================
-    """)
-    
-    submission_counter["count"] = 0
-    failed_counter["count"] = 0
-    successful_appids["ids"] = []
-
-@events.test_stop.add_listener
-def on_test_stop(environment, **kwargs):
-    """Test complete"""
-    total_time = (datetime.now() - environment.stats.start_time).total_seconds() if hasattr(environment.stats, 'start_time') else 0
-    
-    print(f"""
-    ✅ Test Complete
-    ================
-    Total Submissions: {submission_counter['count']}
-    Successful AppIDs: {len(successful_appids['ids'])}
-    Failed Attempts: {failed_counter['count']}
-    
-    Test Duration: {total_time:.1f} seconds
-    Submissions/Second: {submission_counter['count'] / total_time if total_time > 0 else 0:.2f}
-    ================
-    """)
-    
-    # Save AppIDs
-    if successful_appids["ids"]:
-        filename = f"ftrs_appids_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-        with open(filename, 'w') as f:
-            for app_id in successful_appids["ids"]:
-                f.write(f"{app_id}\n")
-        print(f"📝 Saved {len(successful_appids['ids'])} AppIDs to {filename}")
-
-
-if __name__ == "__main__":
-    print("""
-    Run with:
-    python -m locust -f ftrs_portal_optimized.py --users 100 --spawn-rate 25 --run-time 5m
-    """)
+                # Show all input fields
+                for input_field in form.find_all('input'):
+                    name = input_field.get('name', 'NO_NAME')
+                    type_ = input_field.get('type', 'text')
+                    value = input_field.get('value', '')
+                    
+                    if type_ == 'hidden':
+                        print(f"Hidden: {name} = {value[:30]}..." if len(value) > 30 else f"Hidden: {name} = {value}")
+                    else:
+                        print(f"Input[{type_}]: {name}")
+                
+                # Show select fields
+                for select in form.find_all('select'):
+                    print(f"Select: {select.get('name', 'NO_NAME')}")
+                
+                # Show textareas
+                for textarea in form.find_all('textarea'):
+                    print(f"Textarea: {textarea.get('name', 'NO_NAME')}")
+                
+                print("==================\n")
+            else:
+                print("No form found on page")
