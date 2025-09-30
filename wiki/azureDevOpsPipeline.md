@@ -17,13 +17,25 @@ Each testing stage will follow the same fundamental pattern:
 
 1.  **Install Dependencies:** Install `npm` packages.
 2.  **Generate Auth State:** Run the specific Playwright `setup` script for the application being tested. This logs in and saves the authentication state to a JSON file.
-3.  **Run Tests:** Execute the Playwright tests for that application. These tests will automatically reuse the authentication state created in the previous step.
-4.  **Publish Results:** Publish the test results and any artifacts (like screenshots or videos on failure) to the pipeline run.
+3.  **Publish Auth File as Artifact:** The generated JSON file is published as a pipeline artifact, making it available to other stages.
+4.  **Run Tests:** Execute the Playwright tests for that application.
+5.  **Publish Results:** Publish the test results to the pipeline run.
 
+## Agent Lifecycle and Sharing Data Between Stages
+
+It is critical to understand that in Azure DevOps, **each job runs on a fresh agent (virtual machine)** by default. Since our design uses one job per stage, this means each stage starts in a clean environment.
+
+This means any files created during a stage—like the JSON authentication files—are discarded when the stage finishes.
+
+To pass these files between stages, we use **Pipeline Artifacts**.
+-   The stage that creates the auth file uses the `PublishPipelineArtifact` task to save it.
+-   Any subsequent stage that needs the file (like the Load Testing stage) uses the `DownloadPipelineArtifact` task to retrieve it.
+
+---
 
 ## Example Pipeline Structure
 
-Here are YAML examples for each stage.
+Here are YAML examples for each stage, now including the artifact tasks.
 
 ### Stage 1: Test Model-Driven App
 
@@ -43,6 +55,12 @@ This stage handles authentication for the internal Model-Driven App and runs the
 
     - script: npx playwright test --project="auth-mda"
       displayName: 'Generate MDA Auth State'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish MDA Auth File'
+      inputs:
+        targetPath: '.auth/mda.json' # Assuming this is where the auth file is saved
+        artifact: 'mda-auth'
 
     - script: npx playwright test --project="mda"
       displayName: 'Run MDA Tests'
@@ -73,6 +91,12 @@ This stage handles Azure AD B2C authentication for the external-facing Power Pag
     - script: npx playwright test --project="auth-b2c"
       displayName: 'Generate Portal B2C Auth State'
 
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Portal Auth File'
+      inputs:
+        targetPath: '.auth/b2c.json' # Assuming this is where the auth file is saved
+        artifact: 'portal-auth'
+
     - script: npx playwright test --project="portal"
       displayName: 'Run Portal Tests'
 
@@ -102,6 +126,12 @@ This stage handles authentication for the public file static web app and runs it
     - script: npx playwright test --project="auth-public-file"
       displayName: 'Generate Public File Auth State'
 
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Public File Auth File'
+      inputs:
+        targetPath: '.auth/public-file.json' # Assuming this is where the auth file is saved
+        artifact: 'public-file-auth'
+
     - script: npx playwright test --project="public-file"
       displayName: 'Run Public File Tests'
 
@@ -114,7 +144,7 @@ This stage handles authentication for the public file static web app and runs it
 
 ### Stage 4: Run Load Tests
 
-This optional stage can run after the functional tests. It installs Python dependencies and executes the Locust load tests, which consume the authentication files generated in the previous stages.
+This stage runs after the functional tests. It first downloads all the necessary auth files published by the previous stages and then executes the Locust tests.
 
 ```yaml
 - stage: Run_Load_Tests
@@ -127,6 +157,13 @@ This optional stage can run after the functional tests. It installs Python depen
   - job: RunLocustTests
     displayName: 'Run Locust Load Tests'
     steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download All Auth Files'
+      inputs:
+        buildType: 'current'
+        # This downloads all published artifacts to $(Pipeline.Workspace)
+        # The files will be at $(Pipeline.Workspace)/mda-auth/mda.json, etc.
+
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.11'
@@ -136,9 +173,10 @@ This optional stage can run after the functional tests. It installs Python depen
       displayName: 'Install Locust Dependencies'
 
     # This step would be configured to trigger Azure Load Testing
-    # For example, using the Azure CLI or a dedicated marketplace task
+    # Your locust scripts will need to know to look for the auth files in the download path
     - script: |
         echo "Triggering Azure Load Testing with Locust scripts..."
+        # Example: ls -R $(Pipeline.Workspace) to see the downloaded files
         # az load test run ...
       displayName: 'Execute Load Tests via Azure Load Testing'
 ```
