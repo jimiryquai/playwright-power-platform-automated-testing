@@ -3,20 +3,19 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-   "setup": "npx playwright install",
+    "setup": "npx playwright install",
     "test": "npx playwright test",
+    "test:mda": "npx playwright test --project=mda-tests",
     "test:portal": "npx playwright test --project=portal-tests",
     "test:public-file": "npx playwright test --project=public-file-tests",
     "setup:portal": "npx playwright test --project=portal-setup",
     "setup:public-file": "npx playwright test --project=public-file-setup",
     "codegen:portal": "npm run setup:portal && tsx scripts/codegen-project.ts portal",
     "codegen:public-file": "npm run setup:public-file && tsx scripts/codegen-project.ts public-file",
-    
     "load:install": "uv pip install -r load-tests/requirements.txt",
     "load:test-auth": "cd load-tests && python test_auth.py",
     "load:portal": "bash run-locust.sh portal_with_auth || run-locust.cmd portal_with_auth",
     "load:ci:portal": "cd load-tests && python -m locust -f locustfiles/portal_with_auth.py --headless -u 20 -r 5 -t 60s --html reports/portal-report.html",
-    
     "test:portal:full": "npm run setup:portal && npm run test:portal && npm run load:ci:portal"
   },
   "keywords": [],
