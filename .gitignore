@@ -23,3 +23,7 @@ auth-state-local.json
 
 # Images
 *.png
+
+# Locust
+loccustfiles/reports
+*.pyc

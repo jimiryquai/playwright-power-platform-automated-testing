@@ -11,24 +11,23 @@ from pathlib import Path
 class PlaywrightAuthReuser:
     """Extract and reuse authentication from Playwright's saved auth state"""
     
-    def __init__(self, app_type: str = 'mda'):
+    def __init__(self, app_type: str = 'portal'):
         """
         Initialize auth reuser for specific app type.
         
         Args:
-            app_type: One of 'mda', 'portal', or 'public-file'
+            app_type: One of 'portal' or 'public-file'
         """
         self.app_type = app_type
         self.project_root = Path(__file__).parent.parent.parent  # Go up to project root
         self.auth_files = {
-            'mda': self.project_root / 'auth' / 'user.json',
             'portal': self.project_root / 'auth' / 'auth.json',
             'public-file': self.project_root / 'auth' / 'public-file.json'
         }
         
         self.auth_file = self.auth_files.get(app_type)
         if not self.auth_file:
-            raise ValueError(f"Unknown app type: {app_type}")
+            raise ValueError(f"Unknown app type: {app_type}. Valid options: 'portal', 'public-file'")
         
         self.auth_data = self._load_auth_data()
     
@@ -65,82 +64,60 @@ class PlaywrightAuthReuser:
         if not self.auth_data:
             return None
         
-        # Check localStorage first (common for SPAs)
-        for origin_data in self.auth_data.get('origins', []):
-            for storage_item in origin_data.get('localStorage', []):
-                # Look for access tokens in localStorage
-                if 'token' in storage_item['name'].lower() or 'bearer' in storage_item['name'].lower():
-                    value = storage_item['value']
-                    
-                    # If it's a JSON string, parse it
-                    try:
-                        parsed = json.loads(value)
-                        # Look for access_token in the parsed object
-                        if isinstance(parsed, dict):
-                            if 'access_token' in parsed:
-                                token = parsed['access_token']
-                                print(f"✅ Found access token in localStorage")
-                                return f"Bearer {token}"
-                            elif 'accessToken' in parsed:
-                                token = parsed['accessToken']
-                                print(f"✅ Found accessToken in localStorage")
-                                return f"Bearer {token}"
-                    except json.JSONDecodeError:
-                        # Not JSON, might be the token itself
-                        if value and not value.startswith('{'):
-                            print(f"✅ Found token in localStorage")
-                            return f"Bearer {value}"
+        # Try to find Bearer token in localStorage
+        origins = self.auth_data.get('origins', [])
+        for origin in origins:
+            local_storage = origin.get('localStorage', [])
+            for item in local_storage:
+                if 'token' in item.get('name', '').lower():
+                    return f"Bearer {item.get('value')}"
         
-        # Check cookies for auth tokens (less common for API access)
-        cookies = self.get_cookies()
-        for name, value in cookies.items():
-            if 'token' in name.lower() and value:
-                print(f"✅ Found token in cookies: {name}")
-                return f"Bearer {value}"
-        
-        print("⚠️  No Bearer token found in saved auth")
         return None
     
-    def apply_auth_to_locust_client(self, client):
-        """Apply authentication to a Locust HttpUser client"""
-        # Add cookies
-        cookies = self.get_cookies()
-        for name, value in cookies.items():
-            client.cookies.set(name, value)
+    def get_all_headers(self) -> Dict[str, str]:
+        """Get common headers including auth if available"""
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9',
+        }
         
-        # Add auth header if available
         auth_header = self.get_auth_header()
         if auth_header:
-            client.headers['Authorization'] = auth_header
+            headers['Authorization'] = auth_header
         
-        # For D365/MDA, add OData headers
-        if self.app_type == 'mda':
-            client.headers.update({
-                'Accept': 'application/json',
-                'OData-MaxVersion': '4.0',
-                'OData-Version': '4.0',
-                'Content-Type': 'application/json; charset=utf-8',
-                'Prefer': 'odata.include-annotations="*"'
-            })
-        
-        return client
+        return headers
+
+
+def test_auth_helper():
+    """Test function to verify auth helper is working"""
+    print("Testing Playwright Auth Reuser")
+    print("=" * 50)
     
-    def debug_auth_data(self):
-        """Print debug information about the saved auth"""
-        if not self.auth_data:
-            print("No auth data loaded")
-            return
+    apps = ['portal', 'public-file']
+    
+    for app in apps:
+        print(f"\n📱 Testing {app.upper()}")
+        print("-" * 30)
         
-        print("\n🔍 Auth Data Debug Info:")
-        print(f"   Cookies: {len(self.auth_data.get('cookies', []))}")
-        
-        for cookie in self.auth_data.get('cookies', [])[:5]:  # Show first 5
-            print(f"     - {cookie['name']}: {cookie['value'][:20]}...")
-        
-        for origin_data in self.auth_data.get('origins', []):
-            origin = origin_data.get('origin', 'unknown')
-            print(f"\n   Origin: {origin}")
-            print(f"     localStorage items: {len(origin_data.get('localStorage', []))}")
+        try:
+            auth = PlaywrightAuthReuser(app)
             
-            for item in origin_data.get('localStorage', [])[:5]:  # Show first 5
-                print(f"       - {item['name']}: {str(item['value'])[:30]}...")
+            if auth.auth_data:
+                cookies = auth.get_cookies()
+                print(f"✅ Cookies: {len(cookies)}")
+                
+                auth_header = auth.get_auth_header()
+                if auth_header:
+                    print(f"✅ Auth header: Present")
+                else:
+                    print(f"ℹ️  Auth header: Not found (using cookies only)")
+            else:
+                print(f"❌ No auth data loaded")
+                
+        except Exception as e:
+            print(f"❌ Error: {e}")
+
+
+if __name__ == "__main__":
+    test_auth_helper()

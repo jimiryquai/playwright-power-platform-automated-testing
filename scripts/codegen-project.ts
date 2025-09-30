@@ -5,7 +5,7 @@ import { execSync } from 'child_process';
 const projectConfigs = {
   'mda': {
     authFile: 'auth/user.json',
-    urlEnv: 'APP_URL'
+    urlEnv: 'MDA_URL'
   },
   'portal': {
     authFile: 'auth/auth.json', 

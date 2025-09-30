@@ -1,5 +1,6 @@
 """
 Quick script to test if Playwright auth reuse is working
+Run this before load tests to verify authentication is properly set up
 """
 
 import sys
@@ -17,7 +18,6 @@ def test_all_auth():
     print("=" * 50)
     
     apps = {
-        'mda': 'auth/user.json',
         'portal': 'auth/auth.json',
         'public-file': 'auth/public-file.json'
     }
@@ -41,11 +41,17 @@ def test_all_auth():
             cookies = auth.get_cookies()
             print(f"✅ Found {len(cookies)} cookies")
             
+            # Show sample cookie names (first 5)
+            if cookies:
+                print("   Sample cookies:")
+                for name in list(cookies.keys())[:5]:
+                    print(f"   - {name}")
+            
             auth_header = auth.get_auth_header()
             if auth_header:
                 print(f"✅ Found auth token")
             else:
-                print(f"⚠️  No auth token found (might use cookies only)")
+                print(f"ℹ️  No auth token (using cookies only)")
             
             results.append((app_name, True, f"{len(cookies)} cookies"))
         except Exception as e:
@@ -64,14 +70,24 @@ def test_all_auth():
     
     if ready_apps:
         print(f"\n🎯 Ready for load testing: {', '.join(ready_apps)}")
-        print("\nRun load tests with:")
+        print("\n📝 Run load tests with:")
         for app in ready_apps:
             print(f"   npm run load:{app}")
+        print("\n   Or in CI/CD mode:")
+        for app in ready_apps:
+            print(f"   npm run load:ci:{app}")
     else:
         print("\n⚠️  No apps have valid authentication.")
-        print("   Run Playwright auth setup first:")
-        print("   npm run setup:mda")
+        print("\n🔧 Setup instructions:")
         print("   npm run setup:portal")
+        print("   npm run setup:public-file")
+        print("\n   Then run this test again: npm run load:test-auth")
+    
+    print("\n" + "=" * 50)
+    
+    # Return exit code based on results
+    return 0 if ready_apps else 1
 
 if __name__ == "__main__":
-    test_all_auth()
+    exit_code = test_all_auth()
+    sys.exit(exit_code)
