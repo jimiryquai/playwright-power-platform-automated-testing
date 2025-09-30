@@ -17,7 +17,7 @@ Each testing stage will follow the same fundamental pattern:
 
 1.  **Install Dependencies:** Install `npm` packages.
 2.  **Generate Auth State:** Run the specific Playwright `setup` script for the application being tested. This logs in and saves the authentication state to a JSON file.
-3.  **Publish Auth File as Artifact:** The generated JSON file is published as a pipeline artifact, making it available to other stages.
+3.  **Use Auth File:** The generated JSON file is published as a pipeline artifact, making it available to other tasks.
 4.  **Run Tests:** Execute the Playwright tests for that application.
 5.  **Publish Results:** Publish the test results to the pipeline run.
 
