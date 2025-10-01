@@ -27,7 +27,7 @@ parameters:
   - name: runPortal
     displayName: "Run Portal Tests"
     type: boolean
-    default: false
+    default: true
 
   - name: runPublicFile
     displayName: "Run Public File Tests"

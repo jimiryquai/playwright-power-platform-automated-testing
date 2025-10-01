@@ -21,16 +21,19 @@ setup('authenticate', async ({ page }) => {
 
   // ACT - Perform the authentication flow
   await page.goto(testConfig.portalUrl);
-  await loginPage.login(testConfig.b2cUsername, testConfig.b2cPassword);
-  await portalLoginPage.login(testConfig.b2cUsername, testConfig.b2cPassword);
 
-  await page.waitForTimeout(3000); // Give B2C time to settle
+  // Azure B2C login
+  await loginPage.login(testConfig.username, testConfig.password);
+  // Wait for B2C to redirect back (wait for portal login form to appear)
+  await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible({ timeout: 15000 });
 
-  // ASSERT - Verify we reached the authenticated page (not stuck in auth loop)
-  await expect(page.locator('button:has-text("Sign in")')).not.toBeVisible({ timeout: 10000 });
+  // Portal login
+  await portalLoginPage.login(testConfig.username, testConfig.password);
+  // Wait for authenticated home page
+  await expect(page.getByRole('heading', { name: 'Account Home' })).toBeVisible({ timeout: 15000 });
 
-  // Navigate once more to ensure auth is stable
-  await page.goto(testConfig.portalUrl);
+  // Verify we're NOT in an auth loop (Sign in button should be gone)
+  await expect(page.locator('button:has-text("Sign in")')).not.toBeVisible();
 
   // Save authentication state for reuse
   await page.context().storageState({ path: authFile });
