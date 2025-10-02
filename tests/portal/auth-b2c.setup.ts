@@ -7,9 +7,9 @@ import * as fs from 'fs';
 const authFile = 'auth/auth.json';
 
 setup('authenticate', async ({ page }) => {
+  console.log('🔐 Starting authentication...');
   validateConfig();
 
-  // Destructure config values upfront
   const { portalUrl, username, password } = testConfig;
 
   if (!fs.existsSync('auth')) {
@@ -19,28 +19,31 @@ setup('authenticate', async ({ page }) => {
   const loginPage = new LoginPage(page);
   const portalLoginPage = new PortalLoginPage(page);
 
-  // Navigate to portal (uses navigationTimeout from config: 60s)
+  console.log('📍 Navigating to:', portalUrl);
   await page.goto(portalUrl, { waitUntil: 'domcontentloaded' });
+  console.log('✅ Page loaded');
 
-  // Azure B2C login
+  console.log('🔑 B2C login...');
   await loginPage.login(username, password);
+  console.log('✅ B2C complete');
   
-  // Wait for portal sign-in button to appear (uses expect.timeout from config: 30s)
+  console.log('⏳ Waiting for portal sign-in button...');
   await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
+  console.log('✅ Portal form ready');
 
-  // Portal login
+  console.log('🔑 Portal login...');
   await portalLoginPage.login(username, password);
+  console.log('✅ Portal login complete');
   
-  // Wait for authenticated home page (uses expect.timeout from config: 30s)
+  console.log('⏳ Waiting for Account Home...');
   await expect(page.getByRole('heading', { name: 'Account Home' })).toBeVisible();
-
-  // Verify we're NOT in an auth loop
+  console.log('✅ Account Home visible');
+  
   await expect(page.locator('button:has-text("Sign in")')).not.toBeVisible();
+  console.log('✅ Auth verified');
 
-  // Save authentication state for reuse
   await page.context().storageState({ path: authFile });
-  console.log('Power Pages auth saved successfully');
+  console.log('💾 Auth state saved');
 
-  // Optional: Take screenshot for debugging
   await page.screenshot({ path: 'portal-login.png' });
 });
