@@ -60,8 +60,8 @@ jobs:
           testScript: "npm run test:portal"
           environmentVariables:
             PORTAL_URL: "$(PORTAL_URL)"
-            B2C_USERNAME: "$(B2C_USERNAME)"
-            B2C_PASSWORD: "$(B2C_PASSWORD)"
+            O365_USERNAME: "$(O365Username)"
+            O365_PASSWORD: "$(O365Password)"
 
   # Public File Tests
   - ${{ if eq(parameters.runPublicFile, true) }}:

@@ -37,7 +37,7 @@ export const testConfig: Config = {
 };
 
 export const validateConfig = (): void => {
-  const requiredFields = ['portalUrl', 'b2cUsername', 'b2cPassword'];
+  const requiredFields = ['portalUrl', 'username', 'password'];
   const missing = requiredFields.filter(field => !testConfig[field as keyof Config]);
 
   if (missing.length > 0) {
