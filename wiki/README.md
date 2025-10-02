@@ -464,26 +464,6 @@ Tests automatically publish results to:
 - [ ] User story linked in Azure DevOps
 - [ ] Reviewer assigned
 
-## 🔗 Related Resources
-
-### External Documentation
-
-- [Playwright Documentation](https://playwright.dev/)
-- [Playwright Best Practices](https://playwright.dev/docs/best-practices)
-- [Locust Documentation](https://docs.locust.io/)
-- [Azure DevOps Pipelines](https://docs.microsoft.com/en-us/azure/devops/pipelines/)
-- [Power Platform Documentation](https://docs.microsoft.com/en-us/power-platform/)
-
-### Tools
-
-- [Playwright VS Code Extension](https://marketplace.visualstudio.com/items?itemName=ms-playwright.playwright)
-- [Playwright Test for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-playwright.playwright)
-- [Faker API](https://fakerapi.it/) - Test data generation
-
-### Internal Links
-
-- [GitHub Repository](https://github.com/itweedie/playwrightOnPowerPlatform)
-- [Azure DevOps Project](https://dev.azure.com/your-org/your-project)
 
 ## 📝 License
 
