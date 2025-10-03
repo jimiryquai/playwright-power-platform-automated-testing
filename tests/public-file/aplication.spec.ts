@@ -5,7 +5,8 @@ test.use({
     storageState: 'auth/public-file.json'
 });
 
-test('YesJourney', async ({ page }) => {
+test('Create organization. YesJourney', async ({ page }) => {
+
     await page.goto(testConfig.azureAppUrl);
     await page.getByRole('link', { name: 'sign in.' }).click();
 
@@ -41,6 +42,8 @@ test('YesJourney', async ({ page }) => {
     const page1Promise = page.waitForEvent('popup');
     await page.getByRole('link', { name: 'Read the guidance documents' }).click();
     const page1 = await page1Promise;
+    await page1.close(); // ✅ closes the new tab
+
     await page.getByRole('link', { name: 'Organisation information' }).click();
     await expect(page.getByRole('textbox', { name: 'Organisation Name' })).toBeEmpty();
     await page.getByRole('textbox', { name: 'Organisation Name' }).click();
@@ -65,6 +68,12 @@ test('YesJourney', async ({ page }) => {
     await page.getByRole('link', { name: 'public file of our' }).click();
 });
 test('NoJourney', async ({ page }) => {
+        tag: [
+        '@public-file',                    // Application tag
+        '@application',        // Feature tag  
+        '@regression',            // Test type tag
+        '@[3327,3322, 3323]'                 // Azure Test Plans Test Case ID
+    ]
     await page.goto(testConfig.azureAppUrl);
     await page.getByRole('link', { name: 'sign in.' }).click();
 
@@ -100,6 +109,8 @@ test('NoJourney', async ({ page }) => {
     const page1Promise = page.waitForEvent('popup');
     await page.getByRole('link', { name: 'Read the guidance documents' }).click();
     const page1 = await page1Promise;
+    await page1.close(); // ✅ closes the new tab
+
     await page.getByRole('link', { name: 'Organisation information' }).click();
     await expect(page.getByRole('textbox', { name: 'Organisation Name' })).toBeEmpty();
     await page.getByRole('textbox', { name: 'Organisation Name' }).click();
@@ -133,16 +144,13 @@ test('NoJourney', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Prepare and submit your' })).toBeVisible;
     await expect(page.getByRole('link', { name: 'Upload documents' })).toBeVisible;
     await expect(page.getByRole('link', { name: 'Check and submit your' })).toBeVisible;
-    await page.goto('https://ftrs-test.powerappsportals.com/New-Application-About-the-goods/?AppID=7d8956c8-a39f-f011-aa43-6045bd0beacc');
+    await page.getByRole('link', { name: 'About the goods' }).click();
+    await page.getByRole('radio', { name: 'No' }).check();
     await page.getByRole('button', { name: 'Continue' }).click();
     await page.getByRole('button', { name: 'Continue' }).click();
     await page.getByRole('radio', { name: 'No, they come from a specific' }).check();
     await page.getByRole('button', { name: 'Continue' }).click();
-    await page.locator('#countries_form').click();
-    await page.locator('#countries_form').click();
-    await page.locator('#countries_form').click();
-    await page.locator('#countries_form').click();
-    await page.locator('#countries_form').click();
-    await page.locator('#countries_form').click();
-    await page.locator('#countries_form').click();
+    await page.getByRole('link', { name: 'Save and return to tasks' }).click();
+    await expect(page.locator('#caseStatus')).toContainText('DRAFT');
+
 });
