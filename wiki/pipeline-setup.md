@@ -273,28 +273,38 @@ steps:
     displayName: "Minimal Trigger"
 ```
 
-This minimal pipeline was created to mimic the development team's actual build pipeline, which was not made available during initial setup.
+This minimal pipeline was created to mimic the development team's actual release pipeline, which was not made available during initial setup.
 
 #### Production Configuration
 
-**To integrate with your actual dev pipeline:**
+**To integrate with the dev team's actual release pipeline:**
 
-1. Identify the name of the development team's build pipeline
-2. Update `pipeline/automatedTesting.yml`:
-   ```yaml
-   resources:
-     pipelines:
-     - pipeline: dev-team-build  # Replace with actual pipeline name
-       source: YourActualPipelineName  # Replace with actual pipeline name
-       trigger:
-         branches:
-           include:
-           - main
-   ```
+The dev team should add the following task to their **Release pipeline** to trigger your test pipeline after a successful deployment:
 
-3. Remove or keep the `minimal-trigger` pipeline for manual testing purposes
+```yaml
+- task: TriggerBuild@3
+  inputs:
+    definitionIsInCurrentTeamProject: true
+    buildDefinition: 'automatedTesting'  # Your test pipeline name
+    queueBuildForUserThatTriggeredBuild: true
+```
 
-**Why This Matters**: When properly configured, your test pipeline will automatically run whenever the dev team's pipeline completes successfully, ensuring tests run against every build.
+**Key Configuration Options:**
+- `definitionIsInCurrentTeamProject`: Set to `true` since the test pipeline is in the same project
+- `buildDefinition`: Set to `'automatedTesting'` (or whatever you named your test pipeline)
+- `queueBuildForUserThatTriggeredBuild`: Ensures the test run is tracked under the original user
+
+**Prerequisites for TriggerBuild Task:**
+1. The dev team must install the **Trigger Build Task** extension from the Azure DevOps Marketplace:
+   - [Trigger Build Task v3](https://marketplace.visualstudio.com/items?itemName=benjhuser.tfs-extensions-build-tasks)
+
+2. The release pipeline's service connection must have permissions to queue builds:
+   - Go to **Project Settings** → **Pipelines** → **Service connections**
+   - Ensure the build service account has **Queue builds** permission on your test pipeline
+
+**Why This Matters**: When properly configured, your test pipeline will automatically run after each successful release deployment, ensuring tests validate the deployed environment.
+
+**Note**: You can keep the `minimal-trigger` pipeline for manual testing and debugging purposes even after configuring the production integration.
 
 ## Runtime Configuration
 
