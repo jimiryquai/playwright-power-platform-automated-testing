@@ -6,7 +6,7 @@ test.use({
 });
 
 test('Create organization. YesJourney', async ({ page }) => {
-
+tag: ['@[3327]', '@application', '@regression']
     await page.goto(testConfig.azureAppUrl);
     await page.getByRole('link', { name: 'sign in.' }).click();
 
