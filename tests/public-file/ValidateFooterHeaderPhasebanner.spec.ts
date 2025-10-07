@@ -4,26 +4,33 @@ test.use({
   storageState: 'auth/public-file.json'
 });
 
-test('4163', async ({ page }) => {
+test('4163', {
+  tag: [
+    '@application',
+    '@core',
+    '@regression',
+    '@[4163]'
+  ]
+},  async ({ page }) => {
   await page.goto(testConfig.azureAppUrl);
-  await expect(page.getByRole('banner')).toMatchAriaSnapshot(`
+ await expect(page.getByRole('banner')).toMatchAriaSnapshot(`
     - banner:
       - link "GOV.UK":
         - /url: https://www.gov.uk/
         - img "GOV.UK"
       - link "Trade Remedies Service":
-        - /url: ${testConfig.azureAppUrl}
+        - /url: https://publicfile-test.tangoromeoalpha.co.uk/
       - navigation "Menu":
         - list:
           - listitem:
             - link "Home":
-              - /url: ${testConfig.azureAppUrl}
+              - /url: https://publicfile-test.tangoromeoalpha.co.uk/
           - listitem:
             - link "TRA Investigations":
-              - /url: ${testConfig.azureAppUrl}
+              - /url: https://publicfile-test.tangoromeoalpha.co.uk/
           - listitem:
             - link "Sign in":
-              - /url: ${testConfig.portalUrl}
+              - /url: https://ftrs-test.powerappsportals.com/
     `);
   await page.getByRole('link', { name: 'Trade Remedies Service' }).click();
   await page.getByRole('link', { name: 'TRA Investigations' }).click();
@@ -63,15 +70,25 @@ test('4163', async ({ page }) => {
     `);
   await expect(page.getByText('This is a new service – your')).toBeVisible()
 
+const urlWithSlash = testConfig.portalUrl.endsWith('/') ? testConfig.portalUrl : `${testConfig.portalUrl}/`;
+
+
   await expect(page.getByRole('link', { name: 'Sign in', exact: true }))
-    .toHaveAttribute('href', testConfig.portalUrl);
+    .toHaveAttribute('href',  urlWithSlash);
   await expect(page.getByRole('link', { name: 'TRA Investigations' }))
     .toHaveAttribute('href', testConfig.azureAppUrl);
 
   await expect(page.getByLabel('Menu').getByRole('link', { name: 'Home' }))
     .toHaveAttribute('href', testConfig.azureAppUrl);
 });
-test('4162', async ({ page }) => {
+test('4162', {
+  tag: [
+    '@application',
+    '@core',
+    '@regression',
+    '@[4162]'
+  ]
+}, async ({ page }) => {
   await page.goto(testConfig.azureAppUrl);
   await page.getByRole('link', { name: 'Cookies' }).click();
   await expect(page.locator('#main-content')).toMatchAriaSnapshot(`

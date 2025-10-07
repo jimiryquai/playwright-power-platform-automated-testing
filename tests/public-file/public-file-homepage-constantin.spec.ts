@@ -5,7 +5,14 @@ test.use({
   storageState: 'auth/public-file.json'
 });
 
-test('4157', async ({ page }) => {
+test('4157', {
+        tag: [
+      '@public-file',
+      '@core',
+      '@regression',
+      '@[4157]'
+    ]
+  }, async ({ page }) => {
   // All your actions must be inside this block
 
   await page.goto(testConfig.azureAppUrl);
@@ -87,7 +94,14 @@ test('4157', async ({ page }) => {
   await page.getByText('Case: 12344 - my new case').click();
 });
 
-test('4161', async ({ page }) => {
+test('4161', {
+        tag: [
+      '@public-file',
+      '@core',
+      '@regression',
+      '@[4161]'
+    ]
+  }, async ({ page }) => {
   // await page.goto(testConfig.azureAppUrl+'accessibility');
   await page.goto(testConfig.azureAppUrl);
   await page.getByRole('link', { name: 'Accessibility statement' }).click();
@@ -189,7 +203,14 @@ test('4161', async ({ page }) => {
         - /url: https://www.gov.uk/service-manual/communities/accessibility-community
     `);
 });
-test('4160', async ({ page }) => {
+test('4160', {
+        tag: [
+      '@public-file',
+      '@core',
+      '@regression',
+      '@[4160]'
+    ]
+  }, async ({ page }) => {
     await page.goto(testConfig.azureAppUrl);
     await page.getByRole('link', { name: 'Terms and privacy' }).click();
     await page.getByRole('heading', { name: 'Trade Remedies Service Terms' }).click();

@@ -4,7 +4,14 @@ test.use({
   storageState: 'auth/public-file.json'
 });
 
-test('4177', async ({ page }) => {
+test('4177', {
+        tag: [
+      '@application',
+      '@core',
+      '@regression',
+      '@[4177]'
+    ]
+  },  async ({ page }) => {
   await page.goto(testConfig.azureAppUrl);
   await page.getByRole('row', { name: 'No. 1147/Draft Case New Draft' }).getByRole('link').nth(2).click();
 
@@ -13,7 +20,14 @@ test('4177', async ({ page }) => {
 
 });
 
-test('4178', async ({ page }) => {
+test('4178', {
+        tag: [
+      '@application',
+      '@core',
+      '@regression',
+      '@[4178]'
+    ]
+  },  async ({ page }) => {
   await page.goto(testConfig.azureAppUrl);
   await page.getByRole('row', { name: 'No. 1147/Draft Case New Draft' }).getByRole('link').nth(2).click();
 
@@ -21,7 +35,14 @@ test('4178', async ({ page }) => {
 
 });
 
-test('4168', async ({ page }) => {
+test('4168', {
+        tag: [
+      '@application',
+      '@core',
+      '@regression',
+      '@[4168]'
+    ]
+  },  async ({ page }) => {
   await page.goto(testConfig.azureAppUrl);
   await page.getByRole('row', { name: 'No. 1147/Draft Case New Draft' }).getByRole('link').nth(2).click();
 
