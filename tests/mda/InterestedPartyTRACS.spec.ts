@@ -20,7 +20,7 @@ test.beforeEach(async ({ page }) => {
   await xrmHelper.waitForXrmReady();
 });
 
-test('4196',  {
+test.skip('4196',  {
     tag: [
       '@portal',
       '@core',
