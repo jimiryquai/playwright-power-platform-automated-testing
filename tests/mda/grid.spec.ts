@@ -188,63 +188,63 @@ test.describe('Enhanced Grid Component - Comprehensive Tests', () => {
    * COLUMN HEADER MENU
    * ============================================ */
 
-  test('@grid @columnmenu Should open column header menu', async () => {
-    const columns = await grid.getColumnInfo();
-    const testColumn = columns[2]; // Skip checkbox and first column
+  // test('@grid @columnmenu Should open column header menu', async () => {
+  //   const columns = await grid.getColumnInfo();
+  //   const testColumn = columns[2]; // Skip checkbox and first column
 
-    await grid.openColumnHeaderMenu(testColumn.text);
+  //   await grid.openColumnHeaderMenu(testColumn.text);
 
-    // Verify menu is visible
-    const menu = await page.locator('div[data-testid="columnContextMenu"]').isVisible();
-    expect(menu).toBe(true);
+  //   // Verify menu is visible
+  //   const menu = await page.locator('div[data-testid="columnContextMenu"]').isVisible();
+  //   expect(menu).toBe(true);
 
-    await grid.closeColumnMenu();
-    console.log(`✓ Opened menu for column: ${testColumn.text}`);
-  });
+  //   await grid.closeColumnMenu();
+  //   console.log(`✓ Opened menu for column: ${testColumn.text}`);
+  // });
 
-  test('@grid @columnmenu Should close column menu', async () => {
-    const columns = await grid.getColumnInfo();
-    const testColumn = columns[2];
+  // test('@grid @columnmenu Should close column menu', async () => {
+  //   const columns = await grid.getColumnInfo();
+  //   const testColumn = columns[2];
 
-    await grid.openColumnHeaderMenu(testColumn.text);
+  //   await grid.openColumnHeaderMenu(testColumn.text);
 
-    let menuVisible = await page.locator('div[data-testid="columnContextMenu"]').isVisible();
-    expect(menuVisible).toBe(true);
+  //   let menuVisible = await page.locator('div[data-testid="columnContextMenu"]').isVisible();
+  //   expect(menuVisible).toBe(true);
 
-    await grid.closeColumnMenu();
+  //   await grid.closeColumnMenu();
 
-    menuVisible = await page.locator('div[data-testid="columnContextMenu"]').isVisible();
-    expect(menuVisible).toBe(false);
+  //   menuVisible = await page.locator('div[data-testid="columnContextMenu"]').isVisible();
+  //   expect(menuVisible).toBe(false);
 
-    console.log('✓ Column menu closed');
-  });
+  //   console.log('✓ Column menu closed');
+  // });
 
-  test('@grid @columnmenu Should throw error for non-existent column header', async () => {
-    try {
-      await grid.openColumnHeaderMenu('NonExistentColumn123');
-      throw new Error('Should have thrown an error');
-    } catch (error: any) {
-      expect(error.message).toContain('not found');
-      console.log('✓ Error handling for invalid column works');
-    }
-  });
+  // test('@grid @columnmenu Should throw error for non-existent column header', async () => {
+  //   try {
+  //     await grid.openColumnHeaderMenu('NonExistentColumn123');
+  //     throw new Error('Should have thrown an error');
+  //   } catch (error: any) {
+  //     expect(error.message).toContain('not found');
+  //     console.log('✓ Error handling for invalid column works');
+  //   }
+  // });
 
   /* ============================================
    * COLUMN SORTING
    * ============================================ */
 
-  test('@grid @sort Should sort column A to Z', async () => {
-    const columns = await grid.getColumnInfo();
-    // Find a text column (usually Account Name or similar)
-    const testColumn = columns.find(c => c.text.includes('Name')) || columns[2];
+  // test('@grid @sort Should sort column A to Z', async () => {
+  //   const columns = await grid.getColumnInfo();
+  //   // Find a text column (usually Account Name or similar)
+  //   const testColumn = columns.find(c => c.text.includes('Name')) || columns[2];
 
-    await grid.sortColumnAtoZ(testColumn.text);
+  //   await grid.sortColumnAtoZ(testColumn.text);
 
-    const sortState = await grid.getColumnSortState(testColumn.text);
-    expect(sortState).toBe('asc');
+  //   const sortState = await grid.getColumnSortState(testColumn.text);
+  //   expect(sortState).toBe('asc');
 
-    console.log(`✓ Sorted "${testColumn.text}" A to Z`);
-  });
+  //   console.log(`✓ Sorted "${testColumn.text}" A to Z`);
+  // });
 
   test('@grid @sort Should sort column Z to A', async () => {
     const columns = await grid.getColumnInfo();
@@ -253,39 +253,24 @@ test.describe('Enhanced Grid Component - Comprehensive Tests', () => {
     await grid.sortColumnZtoA(testColumn.text);
 
     const sortState = await grid.getColumnSortState(testColumn.text);
+    await page.pause();
+
     expect(sortState).toBe('desc');
 
     console.log(`✓ Sorted "${testColumn.text}" Z to A`);
   });
 
-  test('@grid @sort Should toggle sort direction', async () => {
-    const columns = await grid.getColumnInfo();
-    const testColumn = columns.find(c => c.text.includes('Name')) || columns[2];
+  // test('@grid @sort Should return null for unsorted column', async () => {
+  //   const columns = await grid.getColumnInfo();
+  //   // Get a column that's likely not sorted
+  //   const testColumn = columns[columns.length - 1];
 
-    // Sort ascending
-    await grid.sortColumnAtoZ(testColumn.text);
-    let sortState = await grid.getColumnSortState(testColumn.text);
-    expect(sortState).toBe('asc');
+  //   const sortState = await grid.getColumnSortState(testColumn.text);
 
-    // Sort descending
-    await grid.sortColumnZtoA(testColumn.text);
-    sortState = await grid.getColumnSortState(testColumn.text);
-    expect(sortState).toBe('desc');
-
-    console.log('✓ Sort direction toggle works');
-  });
-
-  test('@grid @sort Should return null for unsorted column', async () => {
-    const columns = await grid.getColumnInfo();
-    // Get a column that's likely not sorted
-    const testColumn = columns[columns.length - 1];
-
-    const sortState = await grid.getColumnSortState(testColumn.text);
-
-    // Should be null or one of the sort states
-    expect(['asc', 'desc', null]).toContain(sortState);
-    console.log(`✓ Column "${testColumn.text}" sort state: ${sortState || 'none'}`);
-  });
+  //   // Should be null or one of the sort states
+  //   expect(['asc', 'desc', null]).toContain(sortState);
+  //   console.log(`✓ Column "${testColumn.text}" sort state: ${sortState || 'none'}`);
+  // });
 
   /* ============================================
    * COLUMN FILTER

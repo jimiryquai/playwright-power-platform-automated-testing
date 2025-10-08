@@ -107,25 +107,31 @@ export class Grid {
     );
   }
 
-
   /**
-   * Gets all visible column headers and their indices
-   * @returns Array of objects with column index and display text
-   */
+  * Gets all visible column headers and their indices
+  * @returns Array of objects with column index and display text
+  */
   async getColumnInfo(): Promise<Array<{ index: number; text: string }>> {
     await this.waitForGridReady();
-    const headerCells = await this.page.$$('div.ag-header-cell');
-    const columns = [];
 
-    for (const cell of headerCells) {
-      const label = await cell.$('.ms-Label, label');
-      const text = label ? await label.evaluate((el) => (el as HTMLElement).innerText?.trim() || '') : '';
+    const headerCells = await this.page.$$('div.ag-header-cell[aria-colindex]');
+    const columns: Array<{ index: number; text: string }> = [];
+
+    for (let i = 0; i < headerCells.length; i++) {
+      const cell = headerCells[i];
+      const clickableHeader = await cell.$('div[data-testid="columnHeader"]');
+      if (!clickableHeader) continue;
+
+      const rawText = await clickableHeader.evaluate(el => el.textContent || '');
+      const text = this.cleanColumnName(rawText);
       const ariaColIndex = await cell.getAttribute('aria-colindex');
 
-      if (ariaColIndex) {
+      if (ariaColIndex && text) {
         columns.push({ index: parseInt(ariaColIndex), text });
       }
     }
+
+    console.error(`[getColumnInfo] Columns: ${JSON.stringify(columns.map(c => c.text))}`);
     return columns;
   }
 
@@ -397,20 +403,44 @@ export class Grid {
    * COLUMN HEADER MENU INTERACTIONS
    * ============================================ */
 
+  private cleanColumnName(columnText: string): string {
+    const trimmed = columnText.trim();
+
+    // Find where the text starts repeating
+    for (let i = 1; i <= trimmed.length / 2; i++) {
+      const firstPart = trimmed.substring(0, i);
+      const secondPart = trimmed.substring(i, i * 2);
+
+      if (firstPart === secondPart) {
+        return firstPart;
+      }
+    }
+
+    return trimmed;
+  }
+
   /**
   * Clicks on a column header to open its context menu
-  * @param columnName The display name of the column (e.g., "Account Name")
   */
   async openColumnHeaderMenu(columnName: string): Promise<void> {
     await this.waitForGridReady();
+    console.error(`[openColumnHeaderMenu] Looking for: "${columnName}"`);
 
-    const headers = await this.page.$$('div.ag-header-cell div[data-testid="columnHeader"]');
+    const headerCells = await this.page.$$('div.ag-header-cell[aria-colindex]');
 
-    for (const header of headers) {
-      const text = await header.evaluate((el) => (el as HTMLElement).innerText?.trim() || '');
+    for (let i = 0; i < headerCells.length; i++) {
+      const cell = headerCells[i];
+      const clickableHeader = await cell.$('div[data-testid="columnHeader"]');
+      if (!clickableHeader) continue;
+
+      const rawText = await clickableHeader.evaluate(el => el.textContent || '');
+      const text = this.cleanColumnName(rawText);
+
+      console.error(`[openColumnHeaderMenu] Checking: "${text}"`);
 
       if (text === columnName) {
-        await header.click();
+        console.error(`[openColumnHeaderMenu] ✓ MATCH! Clicking: "${text}"`);
+        await clickableHeader.click();
         await this.page.waitForSelector(this.columnMenuSelector, { state: 'visible' });
         return;
       }
@@ -437,17 +467,38 @@ export class Grid {
   async sortColumnAtoZ(columnName: string): Promise<void> {
     await this.openColumnHeaderMenu(columnName);
     await this.clickColumnMenuOption('A to Z');
+    await this.page.waitForSelector(this.columnMenuSelector, { state: 'hidden' });
     await this.waitForGridReady();
+    await this.page.waitForSelector('div.ag-header-cell[aria-sort="ascending"]', { state: 'attached', timeout: 5000 });
   }
 
-  /**
-   * Sorts a column Z to A (descending)
-   * @param columnName The display name of the column to sort
-   */
   async sortColumnZtoA(columnName: string): Promise<void> {
+    // Get col-id before we do anything
+    const colId = await this.getColIdByName(columnName);
+
     await this.openColumnHeaderMenu(columnName);
     await this.clickColumnMenuOption('Z to A');
-    await this.waitForGridReady();
+    await this.page.waitForSelector(this.columnMenuSelector, { state: 'hidden' });
+
+    // Wait for THIS specific column by col-id to update
+    await this.page.waitForSelector(`div.ag-header-cell[col-id="${colId}"][aria-sort="descending"]`);
+  }
+
+  // Helper method
+  private async getColIdByName(columnName: string): Promise<string> {
+    const headers = await this.page.$$('div.ag-header-cell[aria-colindex]');
+    for (const cell of headers) {
+      const clickableHeader = await cell.$('div[data-testid="columnHeader"]');
+      if (!clickableHeader) continue;
+
+      const rawText = await clickableHeader.evaluate(element => element.textContent?.trim() || '');
+      const text = this.cleanColumnName(rawText);
+
+      if (text === columnName) {
+        return await cell.getAttribute('col-id') || '';
+      }
+    }
+    throw new Error(`Column ${columnName} not found`);
   }
 
   /**
@@ -462,27 +513,33 @@ export class Grid {
   }
 
   /**
-  * Gets the current sort state of a column
-  * @param columnName The display name of the column
-  * @returns 'asc' for ascending, 'desc' for descending, null if not sorted
-  */
+ * Gets the current sort state of a column
+ */
   async getColumnSortState(columnName: string): Promise<'asc' | 'desc' | null> {
     await this.waitForGridReady();
+    console.error(`[getColumnSortState] Looking for: "${columnName}"`);
 
-    const headers = await this.page.$$('div.ag-header-cell');
+    const headerCells = await this.page.$$('div.ag-header-cell[aria-colindex]');
 
-    for (const header of headers) {
-      const label = await header.$('.ms-Label, label');
-      const labelText = label ? await label.evaluate((el) => (el as HTMLElement).innerText?.trim() || '') : '';
+    for (let i = 0; i < headerCells.length; i++) {
+      const cell = headerCells[i];
+      const clickableHeader = await cell.$('div[data-testid="columnHeader"]');
+      if (!clickableHeader) continue;
 
-      if (labelText === columnName) {
-        const ariaSort = await header.getAttribute('aria-sort');
-        if (ariaSort === 'ascending') return 'asc';
-        if (ariaSort === 'descending') return 'desc';
-        return null;
+      const rawText = await clickableHeader.evaluate(el => el.textContent || '');
+      const text = this.cleanColumnName(rawText);
+      const ariaSort = await cell.getAttribute('aria-sort');
+
+      console.error(`[getColumnSortState] Column "${text}": aria-sort="${ariaSort}"`);
+
+      if (text === columnName) {
+        const result = ariaSort === 'ascending' ? 'asc' : ariaSort === 'descending' ? 'desc' : null;
+        console.error(`[getColumnSortState] ✓ MATCH! Returning: ${result}`);
+        return result;
       }
     }
 
+    console.error(`[getColumnSortState] ✗ No match found`);
     return null;
   }
 
