@@ -13,10 +13,38 @@ export class Grid {
   // Main grid selectors
   private readonly gridRootSelector = 'div.ag-root';
   private readonly rowSelector = 'div[role="row"]';
-  
+
   // Popup containers (column menus, view selector)
   private readonly columnMenuSelector = 'div[data-testid="columnContextMenu"]';
   private readonly viewSelectorSelector = 'div[data-id*="ViewSelector"]';
+
+  // Centralized checkbox selectors
+  private readonly checkboxInputSelectors = {
+    selectAll: [
+      'div.ag-header-cell[aria-colindex="1"] input[type="checkbox"]',
+      'div.ag-header-select-all input[type="checkbox"]',
+      'input[type="checkbox"][aria-label*="Toggle selection of all rows"]',
+      'input[type="checkbox"][aria-label*="all rows"]'
+    ],
+    row: (rowSelector: string) => [
+      `${rowSelector} input[type="checkbox"][aria-label*="select"]`,
+      `${rowSelector} input[type="checkbox"]`
+    ]
+  };
+
+  private readonly checkboxWrapperSelectors = {
+    selectAll: [
+      'div.ag-header-select-all',
+      'div.ag-checkbox.ag-header-select-all',
+      'div.ag-header-cell[aria-colindex="1"] div.ms-Checkbox'
+    ],
+    row: [
+      'div.ag-selection-checkbox',
+      'div[aria-colindex="1"] div.ag-checkbox',
+      'div[aria-colindex="1"] div.ms-Checkbox',
+      'div.status-cell div.ms-Checkbox'
+    ]
+  };
 
   constructor(page: Page, gridContext: string = 'grid') {
     this.gridContext = gridContext;
@@ -35,9 +63,9 @@ export class Grid {
   async waitForGridReady(): Promise<void> {
     try {
       // Intentionally shorter timeout - progress indicator should hide quickly
-      await this.page.waitForSelector('#progressIndicatorContainer', { 
-        state: 'hidden', 
-        timeout: 5000 
+      await this.page.waitForSelector('#progressIndicatorContainer', {
+        state: 'hidden',
+        timeout: 5000
       });
     } catch (error) {
       console.log('Progress indicator not found or already hidden, proceeding...');
@@ -45,7 +73,7 @@ export class Grid {
 
     // Use config defaults (actionTimeout: 15000ms)
     await this.page.waitForSelector(this.gridRootSelector, { state: 'visible' });
-    
+
     // Wait for grid viewport to be present (works for both empty and populated grids)
     await this.page.waitForSelector('div.ag-center-cols-viewport, div.ag-body-viewport', { state: 'visible' });
   }
@@ -114,14 +142,14 @@ export class Grid {
   async getColumnIndexByName(columnName: string): Promise<number> {
     const columns = await this.getColumnInfo();
     const column = columns.find(c => c.text === columnName);
-    
+
     if (!column) {
       throw new Error(
         `Column "${columnName}" not found in ${this.gridContext}. ` +
         `Available columns: ${columns.map(c => c.text).join(', ')}`
       );
     }
-    
+
     return column.index;
   }
 
@@ -132,12 +160,12 @@ export class Grid {
    */
   async clickLookupLink(recordNumber: number, columnNameOrIndex: string | number): Promise<void> {
     await this.waitForGridReady();
-    
+
     // Resolve column name to index if needed
-    const columnIndex = typeof columnNameOrIndex === 'string' 
+    const columnIndex = typeof columnNameOrIndex === 'string'
       ? await this.getColumnIndexByName(columnNameOrIndex)
       : columnNameOrIndex;
-    
+
     // Try both row-index and aria-rowindex selectors
     const lookupSelectors = [
       `${this.rowSelector}[row-index="${recordNumber}"] div[aria-colindex="${columnIndex}"] a.ms-Link`,
@@ -160,58 +188,59 @@ export class Grid {
     );
   }
 
-  /* ============================================
-   * SELECT ALL RECORDS
-   * ============================================ */
-
   /**
-   * Clicks the "select all" checkbox in the grid header to select all records
-   */
-  async selectAllRecords(): Promise<void> {
-    await this.waitForGridReady();
-
-    // Priority 1: Click the actual input checkbox (avoids Fluent UI pointer interception issues)
-    const inputCheckboxSelectors = [
-      'div.ag-header-cell[aria-colindex="1"] input[type="checkbox"]',
-      'div.ag-header-select-all input[type="checkbox"]',
-      'input[type="checkbox"][aria-label*="Toggle selection of all rows"]',
-      'input[type="checkbox"][aria-label*="all rows"]'
-    ];
-
-    for (const selector of inputCheckboxSelectors) {
+  * Helper method to click a checkbox with Fluent UI pointer interception handling
+  * @param inputSelectors Array of input checkbox selectors to try
+  * @param wrapperSelectors Array of wrapper div selectors to try
+  * @param waitForCondition Function that returns a promise to wait for after clicking
+  */
+  private async clickCheckbox(
+    inputSelectors: string[],
+    wrapperSelectors: string[],
+    waitForCondition: () => Promise<void>
+  ): Promise<void> {
+    // Priority 1: Try actual input checkboxes first
+    for (const selector of inputSelectors) {
       const element = await this.page.$(selector);
       if (element && await element.isVisible()) {
-        await element.click();
-        // Wait for at least one row to be selected
-        await this.page.waitForSelector(
-          'div.ag-row.ag-row-selected, div[role="row"][aria-selected="true"]',
-          { state: 'attached' }
-        );
+        await element.click({ force: true });
+        await waitForCondition();
         return;
       }
     }
 
-    // Priority 2: If no input found, try wrapper divs with force click
-    const wrapperSelectors = [
-      'div.ag-header-select-all',
-      'div.ag-checkbox.ag-header-select-all',
-      'div.ag-header-cell[aria-colindex="1"] div.ms-Checkbox'
-    ];
-
+    // Priority 2: Try wrapper divs if input not found
     for (const selector of wrapperSelectors) {
       const element = await this.page.$(selector);
       if (element && await element.isVisible()) {
-        // Force click to bypass pointer interception
         await element.click({ force: true });
-        await this.page.waitForSelector(
-          'div.ag-row.ag-row-selected, div[role="row"][aria-selected="true"]',
-          { state: 'attached' }
-        );
+        await waitForCondition();
         return;
       }
     }
 
-    throw new Error('Failed to find select-all checkbox in grid header');
+    throw new Error('Failed to find checkbox element');
+  }
+
+  /* ============================================
+   * SELECT ALL RECORDS
+   * ============================================ */
+  /**
+    * Clicks the "select all" checkbox in the grid header to select all records
+    */
+  async selectAllRecords(): Promise<void> {
+    await this.waitForGridReady();
+
+    await this.clickCheckbox(
+      this.checkboxInputSelectors.selectAll,
+      this.checkboxWrapperSelectors.selectAll,
+      async () => {
+        await this.page.waitForSelector(
+          'div.ag-row.ag-row-selected, div[role="row"][aria-selected="true"]',
+          { state: 'attached' }
+        );
+      }
+    );
   }
 
   /**
@@ -219,10 +248,29 @@ export class Grid {
    */
   async deselectAllRecords(): Promise<void> {
     const allSelected = await this.areAllRecordsSelected();
-    if (allSelected) {
-      await this.selectAllRecords(); // Clicking again toggles off
+
+    if (!allSelected) {
+      return; // Already deselected
     }
+
+    await this.waitForGridReady();
+
+    await this.clickCheckbox(
+      this.checkboxInputSelectors.selectAll,
+      this.checkboxWrapperSelectors.selectAll,
+      async () => {
+        await this.page.waitForFunction(
+          () => {
+            const selectedRows = document.querySelectorAll(
+              'div.ag-row.ag-row-selected, div[role="row"][aria-selected="true"]'
+            );
+            return selectedRows.length === 0;
+          }
+        );
+      }
+    );
   }
+
 
   /**
    * Checks if all records are currently selected
@@ -244,7 +292,7 @@ export class Grid {
       if (element && await element.isVisible()) {
         // Check if it's an input element
         const tagName = await element.evaluate(el => el.tagName.toLowerCase());
-        
+
         if (tagName === 'input') {
           // For actual checkbox inputs, check the checked property
           const isChecked = await element.evaluate((el: any) => el.checked);
@@ -253,16 +301,16 @@ export class Grid {
           // For wrapper divs, check classes and aria attributes
           const classes = await element.getAttribute('class');
           const ariaChecked = await element.getAttribute('aria-checked');
-          
+
           return (
-            classes?.includes('ag-checked') || 
+            classes?.includes('ag-checked') ||
             classes?.includes('is-checked') ||
             ariaChecked === 'true'
           );
         }
       }
     }
-    
+
     return false;
   }
 
@@ -271,9 +319,9 @@ export class Grid {
    * ============================================ */
 
   /**
-   * Selects a specific record by clicking its checkbox (single click)
-   * @param recordNumber Zero-based index of the record
-   */
+    * Selects a specific record by clicking its checkbox (single click)
+    * @param recordNumber Zero-based index of the record
+    */
   async selectNthRecord(recordNumber: number): Promise<void> {
     await this.waitForGridReady();
 
@@ -281,46 +329,34 @@ export class Grid {
       `${this.rowSelector}[row-index="${recordNumber}"]`,
       `${this.rowSelector}[aria-rowindex="${recordNumber + 1}"]`
     ];
-    
-    // Priority 1: Click the actual input checkbox (avoids Fluent UI pointer interception)
+
+    // Try each row selector pattern
     for (const rowSelector of rowSelectors) {
-      const checkboxInput = await this.page.$(`${rowSelector} input[type="checkbox"][aria-label*="select"]`);
-      if (checkboxInput && await checkboxInput.isVisible()) {
-        await checkboxInput.click();
-        // Wait for row to be marked as selected
-        await this.page.waitForSelector(
-          `${this.rowSelector}[row-index="${recordNumber}"][aria-selected="true"], ` +
-          `${this.rowSelector}[row-index="${recordNumber}"].ag-row-selected`,
-          { state: 'attached' }
+      try {
+        const inputSelectors = this.checkboxInputSelectors.row(rowSelector);
+        const wrapperSelectors = this.checkboxWrapperSelectors.row.map(
+          wrapper => `${rowSelector} ${wrapper}`
         );
-        return;
+
+        await this.clickCheckbox(
+          inputSelectors,
+          wrapperSelectors,
+          async () => {
+            await this.page.waitForSelector(
+              `${this.rowSelector}[row-index="${recordNumber}"][aria-selected="true"], ` +
+              `${this.rowSelector}[row-index="${recordNumber}"].ag-row-selected`,
+              { state: 'attached' }
+            );
+          }
+        );
+        return; // Success!
+      } catch (error) {
+        // Try next row selector pattern
+        continue;
       }
     }
 
-    // Priority 2: Try wrapper divs with force click if input not found
-    const wrapperSelectors = [
-      'div.ag-selection-checkbox',
-      'div[aria-colindex="1"] div.ag-checkbox',
-      'div[aria-colindex="1"] div.ms-Checkbox',
-      'div.status-cell div.ms-Checkbox'
-    ];
-    
-    for (const rowSelector of rowSelectors) {
-      for (const wrapperSuffix of wrapperSelectors) {
-        const checkbox = await this.page.$(`${rowSelector} ${wrapperSuffix}`);
-        if (checkbox && await checkbox.isVisible()) {
-          await checkbox.click({ force: true });
-          await this.page.waitForSelector(
-            `${this.rowSelector}[row-index="${recordNumber}"][aria-selected="true"], ` +
-            `${this.rowSelector}[row-index="${recordNumber}"].ag-row-selected`,
-            { state: 'attached' }
-          );
-          return;
-        }
-      }
-    }
-
-    throw new Error(`Failed to find checkbox for row ${recordNumber}`);
+    throw new Error(`Failed to select record ${recordNumber} in ${this.gridContext}`);
   }
 
   /**
@@ -342,22 +378,22 @@ export class Grid {
       if (row) {
         const classes = await row.getAttribute('class');
         const ariaSelected = await row.getAttribute('aria-selected');
-        
+
         if (classes?.includes('ag-row-selected') || ariaSelected === 'true') {
           return true;
         }
-        
+
         // Also check if the checkbox within the row is checked
         const checkbox = await row.$('input[type="checkbox"][aria-label*="select"]');
         if (checkbox) {
           const isChecked = await checkbox.evaluate((el: any) => el.checked);
           if (isChecked) return true;
         }
-        
+
         return false;
       }
     }
-    
+
     return false;
   }
 
@@ -439,28 +475,28 @@ export class Grid {
     await this.waitForGridReady();
 
     const headers = await this.page.$$('div.ag-header-cell');
-    
+
     for (const header of headers) {
       const label = await header.$('.ms-Label, label');
       const labelText = label ? (await label.textContent())?.trim() : '';
-      
+
       if (labelText === columnName) {
         // Check for sort indicator icons
         const sortIconUp = await header.$('i[data-icon-name="SortUp"]');
         const sortIconDown = await header.$('i[data-icon-name="SortDown"]');
-        
+
         if (sortIconUp) return 'asc';
         if (sortIconDown) return 'desc';
-        
+
         // Check classes
         const classes = await header.getAttribute('class');
         if (classes?.includes('ag-header-cell-sorted-asc')) return 'asc';
         if (classes?.includes('ag-header-cell-sorted-desc')) return 'desc';
-        
+
         break;
       }
     }
-    
+
     return null;
   }
 
@@ -480,7 +516,7 @@ export class Grid {
     for (const item of menuItems) {
       const nameAttr = await item.getAttribute('name');
       const text = await item.textContent();
-      
+
       if (nameAttr === optionName || text?.includes(optionName)) {
         await item.click();
         return;
@@ -554,7 +590,7 @@ export class Grid {
       `button[aria-label="${buttonLabel}"], ` +
       `button[aria-label*="${buttonLabel}"]`
     );
-    
+
     if (!button) {
       throw new Error(`Command bar button "${buttonLabel}" not found`);
     }
@@ -637,7 +673,7 @@ export class Grid {
 
     // If not found, try searching
     await this.searchViews(viewName);
-    
+
     // Try again after search
     const searchedButtons = await this.page.$$(
       `${this.viewSelectorSelector} button[role="menuitemradio"]`
@@ -679,10 +715,10 @@ export class Grid {
     }
 
     const viewName = await label.textContent();
-    
+
     // Close the selector
     await this.page.keyboard.press('Escape');
-    
+
     return viewName?.trim() || '';
   }
 
