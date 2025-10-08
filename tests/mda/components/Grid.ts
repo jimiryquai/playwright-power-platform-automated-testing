@@ -107,29 +107,25 @@ export class Grid {
     );
   }
 
+
   /**
    * Gets all visible column headers and their indices
    * @returns Array of objects with column index and display text
    */
   async getColumnInfo(): Promise<Array<{ index: number; text: string }>> {
     await this.waitForGridReady();
-
-    const headerCells = await this.page.$$('div.ag-header-row div[role="columnheader"]');
+    const headerCells = await this.page.$$('div.ag-header-cell');
     const columns = [];
 
-    for (let i = 0; i < headerCells.length; i++) {
-      const cell = headerCells[i];
-      const text = await cell.textContent() || '';
+    for (const cell of headerCells) {
+      const label = await cell.$('.ms-Label, label');
+      const text = label ? await label.evaluate((el) => (el as HTMLElement).innerText?.trim() || '') : '';
       const ariaColIndex = await cell.getAttribute('aria-colindex');
 
-      if (ariaColIndex && !isNaN(parseInt(ariaColIndex))) {
-        columns.push({
-          index: parseInt(ariaColIndex),
-          text: text.trim()
-        });
+      if (ariaColIndex) {
+        columns.push({ index: parseInt(ariaColIndex), text });
       }
     }
-
     return columns;
   }
 
@@ -402,20 +398,19 @@ export class Grid {
    * ============================================ */
 
   /**
-   * Clicks on a column header to open its context menu
-   * @param columnName The display name of the column (e.g., "Account Name")
-   */
+  * Clicks on a column header to open its context menu
+  * @param columnName The display name of the column (e.g., "Account Name")
+  */
   async openColumnHeaderMenu(columnName: string): Promise<void> {
     await this.waitForGridReady();
 
-    // Find the column header by its text
     const headers = await this.page.$$('div.ag-header-cell div[data-testid="columnHeader"]');
 
     for (const header of headers) {
-      const text = await header.textContent();
-      if (text?.trim() === columnName) {
+      const text = await header.evaluate((el) => (el as HTMLElement).innerText?.trim() || '');
+
+      if (text === columnName) {
         await header.click();
-        // Wait for menu to appear
         await this.page.waitForSelector(this.columnMenuSelector, { state: 'visible' });
         return;
       }
@@ -467,10 +462,10 @@ export class Grid {
   }
 
   /**
-   * Gets the current sort state of a column
-   * @param columnName The display name of the column
-   * @returns 'asc' for ascending, 'desc' for descending, null if not sorted
-   */
+  * Gets the current sort state of a column
+  * @param columnName The display name of the column
+  * @returns 'asc' for ascending, 'desc' for descending, null if not sorted
+  */
   async getColumnSortState(columnName: string): Promise<'asc' | 'desc' | null> {
     await this.waitForGridReady();
 
@@ -478,22 +473,13 @@ export class Grid {
 
     for (const header of headers) {
       const label = await header.$('.ms-Label, label');
-      const labelText = label ? (await label.textContent())?.trim() : '';
+      const labelText = label ? await label.evaluate((el) => (el as HTMLElement).innerText?.trim() || '') : '';
 
       if (labelText === columnName) {
-        // Check for sort indicator icons
-        const sortIconUp = await header.$('i[data-icon-name="SortUp"]');
-        const sortIconDown = await header.$('i[data-icon-name="SortDown"]');
-
-        if (sortIconUp) return 'asc';
-        if (sortIconDown) return 'desc';
-
-        // Check classes
-        const classes = await header.getAttribute('class');
-        if (classes?.includes('ag-header-cell-sorted-asc')) return 'asc';
-        if (classes?.includes('ag-header-cell-sorted-desc')) return 'desc';
-
-        break;
+        const ariaSort = await header.getAttribute('aria-sort');
+        if (ariaSort === 'ascending') return 'asc';
+        if (ariaSort === 'descending') return 'desc';
+        return null;
       }
     }
 
