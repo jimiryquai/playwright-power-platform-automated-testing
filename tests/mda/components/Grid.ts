@@ -23,72 +23,27 @@ export class Grid {
       console.log('Progress indicator not found or already hidden, proceeding...');
     }
 
-    await this.page.waitForSelector('div.ag-root', { state: 'visible', timeout: 15000 });
-    await this.page.waitForSelector('div[role="row"][row-index="0"]', { state: 'visible', timeout: 15000 });
+    await this.page.waitForSelector('div.ag-root', { state: 'visible' });
+    await this.page.waitForSelector('div[role="row"][row-index="0"]', { state: 'visible' });
   }
 
   /**
-   * Opens the record in the grid at the n-th index by double-clicking
+   * Opens the record in the grid at the n-th index by double-clicking the checkbox column
    * @param recordNumber Zero-based index of the record to open
-   * @param columnIndex Column to click (defaults to 2 - the main record field)
    */
-  async openNthRecord(recordNumber: number, columnIndex: number = 2): Promise<void> {
+  async openNthRecord(recordNumber: number): Promise<void> {
     await this.waitForGridReady();
 
-    const selector = `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="${columnIndex}"]`;
+    // Always use column 1 (checkbox column) - most reliable for opening main record
+    const selector = `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="1"]`;
     const targetElement = await this.page.$(selector);
 
     if (!targetElement) {
-      throw new Error(`Failed to find column ${columnIndex} in row ${recordNumber} for ${this.gridContext}. Available rows: ${await this.getGridRowCount()}`);
+      throw new Error(`Failed to find row ${recordNumber} in ${this.gridContext}.`);
     }
 
     await targetElement.dblclick();
     await this.xrmHelper.waitForXrmReady();
-  }
-
-  /**
-   * Gets the total number of data rows in the grid (excluding header)
-   */
-  async getGridRowCount(): Promise<number> {
-    await this.waitForGridReady();
-
-    const selectors = [
-      'div.ag-row',
-      'div[row-index]',
-    ];
-
-    for (const selector of selectors) {
-      const rows = await this.page.$$(selector);
-      if (rows.length > 0) {
-        return rows.length;
-      }
-    }
-
-    return 0;
-  }
-
-  /**
-   * Gets the text content of a cell by column index
-   */
-  async getCellTextByIndex(recordNumber: number, columnIndex: number): Promise<string> {
-    await this.waitForGridReady();
-
-    const cellSelector = `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="${columnIndex}"]`;
-    const cellElement = await this.page.$(cellSelector);
-
-    if (!cellElement) {
-      throw new Error(`Failed to find cell at row ${recordNumber}, column index ${columnIndex} in ${this.gridContext}`);
-    }
-
-    const textContent = await cellElement.textContent();
-    return textContent?.trim() || '';
-  }
-
-  /**
-   * Gets the main field text for a specific row (column 2)
-   */
-  async getRecordName(recordNumber: number, columnIndex: number = 2): Promise<string> {
-    return await this.getCellTextByIndex(recordNumber, columnIndex);
   }
 
   /**
@@ -117,40 +72,43 @@ export class Grid {
   }
 
   /**
-  * Double-clicks on any element within a specific row and column
-  * @param recordNumber Zero-based row index
-  * @param columnIndex Column to double-click
-  */
-  async doubleClickCell(recordNumber: number, columnIndex: number): Promise<void> {
-    await this.xrmHelper.waitForXrmReady();
-    await this.waitForGridReady();
+   * Gets the column index by column header name
+   * @param columnName The display name of the column header (e.g., "Account Name", "Status")
+   * @returns The aria-colindex value for the column
+   * @throws Error if column is not found in the current view
+   */
+  async getColumnIndexByName(columnName: string): Promise<number> {
+    const columns = await this.getColumnInfo();
+    const column = columns.find(c => c.text === columnName);
 
-    const cellSelector = `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="${columnIndex}"]`;
-    const cellElement = await this.page.$(cellSelector);
-
-    if (!cellElement) {
-      throw new Error(`Failed to find cell at row ${recordNumber}, column index ${columnIndex} in ${this.gridContext}`);
+    if (!column) {
+      throw new Error(`Column "${columnName}" not found in ${this.gridContext}. Available columns: ${columns.map(c => c.text).join(', ')}`);
     }
 
-    await cellElement.dblclick();
+    return column.index;
   }
 
   /**
-  * Clicks a lookup link in a specific cell to open the related record
-  * @param recordNumber Zero-based row index
-  * @param columnIndex Column containing the lookup field
-  */
-  async clickLookupLink(recordNumber: number, columnIndex: number): Promise<void> {
-    await this.xrmHelper.waitForXrmReady();
+   * Clicks a lookup link in a specific cell to navigate to the related record
+   * @param recordNumber Zero-based row index
+   * @param columnNameOrIndex Column name (e.g., "Account Name") or aria-colindex number
+   */
+  async clickLookupLink(recordNumber: number, columnNameOrIndex: string | number): Promise<void> {
     await this.waitForGridReady();
-    const lookupSelector = `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="${columnIndex}"] a.ms-Link`;
 
+    // Resolve column name to index if needed
+    const columnIndex = typeof columnNameOrIndex === 'string'
+      ? await this.getColumnIndexByName(columnNameOrIndex)
+      : columnNameOrIndex;
+
+    const lookupSelector = `div[role="row"][row-index="${recordNumber}"] div[aria-colindex="${columnIndex}"] a.ms-Link`;
     const lookupElement = await this.page.$(lookupSelector);
 
     if (!lookupElement) {
-      throw new Error(`No lookup link found at row ${recordNumber}, column ${columnIndex} in ${this.gridContext}`);
+      throw new Error(`No lookup link found at row ${recordNumber}, column ${columnNameOrIndex} in ${this.gridContext}`);
     }
 
     await lookupElement.click();
   }
+
 }
